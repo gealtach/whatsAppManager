@@ -1,0 +1,40 @@
+# Ignorar node_modules en cualquier carpeta
+**/node_modules/
+
+# Ignorar dist en cualquier carpeta
+**/dist/
+
+# Ignorar archivos .zip en cualquier ubicación
+*.zip
+
+# Ignorar archivos .env y similares (ej. .env.local, .env.production)
+**/.env*
+**/.env
+express-ts/src/temp/*
+
+# Otros comunes para Node.js/Next.js
+.cache/
+.vercel/
+.next/
+out/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencias opcionales
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

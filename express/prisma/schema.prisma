@@ -1,0 +1,155 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  apiKey    String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountUsers AccountUser[]
+  clients      Client[]
+  broadcasts   Broadcast[]
+}
+
+model AccountUser {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  email     String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  broadcastRecipients BroadcastRecipient[]
+}
+
+model Broadcast {
+  id          String          @id @default(uuid())
+  name        String
+  message     String
+  status      BroadcastStatus @default(PENDING)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  recipients BroadcastRecipient[]
+}
+
+model BroadcastRecipient {
+  id           String        @id @default(uuid())
+  status       MessageStatus @default(PENDING)
+  sentAt       DateTime?
+  errorMessage String?
+
+  broadcastId String
+  broadcast   Broadcast @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([broadcastId, clientId])
+}
+
+enum BroadcastStatus {
+  PENDING
+  SENDING
+  COMPLETED
+  FAILED
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+//#########################################
+//############# Security Logs #############
+//#########################################
+
+model AuthLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  email     String?
+  action    String
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  @@index([email])
+  @@index([ipAddress])
+  @@index([timestamp])
+}
+
+model LoginBlock {
+  id        String   @id @default(uuid())
+  email     String?
+  ipAddress String?
+  reason    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([ipAddress])
+  @@index([expiresAt])
+}
+
+//########################################
+//############## Error Logs ##############
+//########################################
+
+model ErrorLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  email        String?
+  errorName    String // Nombre del error
+  errorMessage String   @db.Text // Mensaje del error
+  stackTrace   String?  @db.Text // Stack trace completo
+  endpoint     String? // API endpoint donde ocurrió
+  method       String? // HTTP method
+  ipAddress    String?
+  userAgent    String?
+  requestBody  Json? // Body de la request (sin passwords)
+  headers      Json? // Headers de la request
+  statusCode   Int? // Status code devuelto
+  timestamp    DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([errorName])
+  @@index([timestamp])
+  @@index([endpoint])
+}
