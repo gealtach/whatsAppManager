@@ -1,20 +1,40 @@
 import { RequestHandler } from "express";
-import { prisma } from "../lib/prisma";
 import { ErrorLogger } from "../utils/errorLogger";
+import { prisma } from "../lib/prisma";
 
-export const getAll: RequestHandler = async (req, res) => {
+export const create: RequestHandler = async (req, res) => {
     try {
-        if (req.user?.role === 1) {
-            const acconunts = await prisma.account.findMany();
-            res.status(200).json({ message: '', ok: true, payload: acconunts });
-            return;
-        }
+        const { name, message, clientIds, accountId, scheduledAt, complement } = req.body;
+        if (!name || !message || !accountId || !clientIds) throw new Error('Faltam campos obrigatórios');
+        if (!Array.isArray(clientIds)
+            || clientIds.length < 1
+            || !clientIds.every(item => typeof item === 'string')) {
+            throw new Error('Dados não compatíveis');
+        };
 
-        const acconunts = await prisma.accountUser.findMany({
-            where: { userId: req.user?.userId },
-            include: { account: true }
-        })
-        res.status(200).json({ message: '', ok: true, payload: acconunts });
+        await prisma.broadcast.create({
+            data: {
+                name,
+                message,
+                accountId,
+                scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+                recipients: {
+                    create: clientIds.map(clientId => ({
+                        clientId: clientId
+                    }))
+                },
+                complement,
+            },
+            include: {
+                recipients: {
+                    include: {
+                        client: true
+                    }
+                }
+            }
+        });
+
+        res.status(201).json({ message: 'Criado com sucesso', ok: true });
         return;
     } catch (error) {
         console.error(error);
@@ -36,34 +56,29 @@ export const getAll: RequestHandler = async (req, res) => {
     }
 };
 
-export const create: RequestHandler = async (req, res) => {
+export const getByAccount: RequestHandler = async (req, res) => {
     try {
-        const { name, phone, apiKey, authorized } = req.body;
-        if (!name || !phone || !apiKey || !authorized) throw new Error('Faltam campos obrigatórios');
-        if (!Array.isArray(authorized)
-            || authorized.length < 1
-            || !authorized.every(item => typeof item === 'string')) {
-            throw new Error('Dados não compatíveis');
-        };
+        const { id } = req.params;
+        if (!id) throw new Error('Faltam campos obrigatórios');
 
-        const phoneExists = await prisma.account.findUnique({ where: { phone } });
-        if (phoneExists) throw new Error('Telemóvel já registado');
-
-        const apikeyExist = await prisma.account.findUnique({ where: { apiKey } });
-        if (apikeyExist) throw new Error('ApiKey já registada');
-
-        await prisma.account.create({
-            data: {
-                name, phone, apiKey,
-                accountUsers: {
-                    create: authorized.map((userId: string) => ({
-                        userId
-                    }))
+        const broadcasts = await prisma.broadcast.findMany({
+            where: { accountId: id },
+            include: {
+                _count: {
+                    select: {
+                        recipients: true
+                    }
+                },
+                recipients: {
+                    include: {
+                        client: true
+                    }
                 }
-            }
+            },
+            orderBy: { createdAt: 'desc' }
         });
 
-        res.status(201).json({ message: 'Cuenta criada com sucesso', ok: true });
+        res.status(200).json({ message: '', ok: true, payload: broadcasts });
         return;
     } catch (error) {
         console.error(error);
@@ -72,11 +87,6 @@ export const create: RequestHandler = async (req, res) => {
             const errorMap: { [key: string]: { status: number; message: string } } = {
                 'Utilizador não encontrado': { status: 404, message: 'Utilizador não encontrado' },
                 'Faltam campos obrigatórios': { status: 400, message: 'Faltam campos obrigatórios' },
-                'Dados não compatíveis': { status: 400, message: 'Dados não compatíveis' },
-                'Telemóvel já registado': { status: 400, message: 'Telemóvel já registado' },
-                'ApiKey já registada': { status: 400, message: 'ApiKey já registada' },
-
-
             };
             const errorResponse = errorMap[error.message] || { status: 500, message: 'Erro interno do servidor' };
             res.status(errorResponse.status).json({
