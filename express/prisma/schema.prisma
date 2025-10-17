@@ -12,7 +12,7 @@ model Account {
   id        String   @id @default(uuid())
   name      String
   phone     String   @unique
-  apiKey    String   @unique
+  apiKey    String   @db.Text
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

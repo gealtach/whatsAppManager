@@ -7,7 +7,6 @@ interface CoreUser {
     name: string;
     lastname: string;
     role: number;
-    department?: string;
 }
 
 export class CoreService {
@@ -44,7 +43,7 @@ export class CoreService {
             console.error('Error fetching user from core:', error);
             return null;
         }
-    }
+    };
 
     async logoutUser(userId: string): Promise<boolean> {
         try {
@@ -64,6 +63,25 @@ export class CoreService {
         } catch (error) {
             console.error('Error logging out from core:', error);
             return false;
+        }
+    };
+
+    async getAllUsers(): Promise<CoreUser[] | null> {
+        try {
+            const response = await fetch(`${process.env.CORE_URL}/user/allExternal/${process.env.WHERE}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': process.env.CORE_KEY!,
+                },
+            });
+            if (!response.ok) {
+                console.error(`Core service error: ${response.status}`);
+                return null;
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching user from core:', error);
+            return null;
         }
     }
 }

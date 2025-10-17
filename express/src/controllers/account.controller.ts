@@ -5,14 +5,26 @@ import { ErrorLogger } from "../utils/errorLogger";
 export const getAll: RequestHandler = async (req, res) => {
     try {
         if (req.user?.role === 1) {
-            const acconunts = await prisma.account.findMany();
+            const acconunts = await prisma.account.findMany({
+                include: {
+                    clients: true,
+                    broadcasts: true,
+                }
+            });
             res.status(200).json({ message: '', ok: true, payload: acconunts });
             return;
         }
 
         const acconunts = await prisma.accountUser.findMany({
             where: { userId: req.user?.userId },
-            include: { account: true }
+            include: {
+                account: {
+                    include: {
+                        clients: true,
+                        broadcasts: true,
+                    }
+                }
+            }
         })
         res.status(200).json({ message: '', ok: true, payload: acconunts });
         return;
@@ -39,6 +51,7 @@ export const getAll: RequestHandler = async (req, res) => {
 export const create: RequestHandler = async (req, res) => {
     try {
         const { name, phone, apiKey, authorized } = req.body;
+        console.log(req.body)
         if (!name || !phone || !apiKey || !authorized) throw new Error('Faltam campos obrigatórios');
         if (!Array.isArray(authorized)
             || authorized.length < 1
@@ -49,7 +62,7 @@ export const create: RequestHandler = async (req, res) => {
         const phoneExists = await prisma.account.findUnique({ where: { phone } });
         if (phoneExists) throw new Error('Telemóvel já registado');
 
-        const apikeyExist = await prisma.account.findUnique({ where: { apiKey } });
+        const apikeyExist = await prisma.account.findFirst({ where: { apiKey } });
         if (apikeyExist) throw new Error('ApiKey já registada');
 
         await prisma.account.create({

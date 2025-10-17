@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
-import { User } from '@prisma/client';
 
 export const transporter = nodemailer.createTransport({
     host: process.env.IP_SERVER,
@@ -151,9 +150,9 @@ export const baseEmailTemplate = (content: string, subject: string) => {
 };
 
 // Plantilla para confirmação de alteração de senha
-export const authTemplate = (user: User, password: string) => {
+export const authTemplate = (email: string, password: string) => {
     const content = `
-    <div class="greeting">Caro(a) ${user.name} ${user.lastname},</div>
+    <div class="greeting">Caro(a) ${email},</div>
     
     <div class="message">
         <p>Sua palavra-passe é:</p>
@@ -175,13 +174,13 @@ export const authTemplate = (user: User, password: string) => {
 };
 
 // Função para enviar confirmação de alteração de senha
-export const authEmail = async (user: User, password: string) => {
+export const authEmail = async (email: string, password: string) => {
     try {
         await transporter.sendMail({
             from: `Core Materia Webmaster <${process.env.EMAIL}>`,
-            to: user.email,
+            to: email,
             subject: 'Novo registo',
-            html: authTemplate(user, password)
+            html: authTemplate(email, password)
         });
         return true;
     } catch (error) {
@@ -190,89 +189,3 @@ export const authEmail = async (user: User, password: string) => {
     };
 };
 
-export const ResetPassword = (user: User, token: string, client: boolean) => {
-    let content;
-    if (!client) {
-        content = `
-        <div class="greeting" >Caro(a) ${user.name},</div>
-        
-        <div class="message">
-            <p>Clique no seguinte botão para alterar a sua palavra-passe</p>
-
-            <a class="button" href='https://core.wearemateria.com/reset-password?token=${token}' target='_blank'>Click</a>
-        </div>
-        
-        <div class="signature">
-            <p>Com os melhores cumprimentos,</p>
-            <p><strong>A Equipa We are materia.</strong></p>
-        </div>
-    `;
-    } else {
-        content = `
-        <div class="greeting">Caro(a) ${user.name},</div>
-        
-        <div class="message">
-            <p>Clique no seguinte botão para alterar a sua palavra-passe</p>
-
-            <a class="button" href='https://support.wearemateria.com/reset-password?token=${token}' target='_blank'>Click</a>
-        </div>
-        
-        <div class="signature">
-            <p>Com os melhores cumprimentos,</p>
-            <p><strong>A Equipa We are materia.</strong></p>
-        </div>
-        `;
-    }
-
-    return baseEmailTemplate(content, "Reposição da palavra-passe.");
-};
-
-export const resetEmail = async(user: User, token:string, client:boolean)=>{
-    try {
-        await transporter.sendMail({
-            from: `Core Materia Webmaster <${process.env.EMAIL}>`,
-            to: user.email,
-            subject: 'Reposição da palavra-passe',
-            html: ResetPassword(user, token, client)
-        });
-    } catch (error) {
-        console.error("Erro ao enviar email de confirmação:", error);
-        return false;
-    }
-}
-
-export const welcomeClientEmail = async (user: User) => {
-    try {
-        await transporter.sendMail({
-            from: `Core Materia Webmaster <${process.env.EMAIL}>`,
-            to: user.email,
-            subject: 'Novo registo',
-            html: await welcomeClientTemplate(user)
-        });
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de confirmação:", error);
-        return false;
-    };
-};
-
-export const welcomeClientTemplate = async (user: User) => {
-    const content = `
-    <div class="greeting">Caro(a) ${user.name},</div>
-    
-    <div class="message">
-        <p>Bem-vindo(a) à Materia Ticket</p>
-
-        <p>Agradecemos o seu registo e esperamos que a aplicação seja bastante útil para si.</p>
-
-        <a class="button" style{text:white} href="https://support.wearemateria.com">Aceder</a>
-    </div>
-
-    <div class="signature">
-        <p>Com os melhores cumprimentos,</p>
-        <p><strong>A Equipa We are materia.</strong></p>
-    </div>
-    `;
-    
-    return baseEmailTemplate(content, "Bem-vindo(a) à Materia Ticket");
-};
