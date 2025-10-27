@@ -5,10 +5,13 @@ import { Account, Client } from "../Types";
 import { toast } from "react-toastify";
 import { fetchClient } from "../lib/fetchClient";
 import Loading from "./Loading";
+import NewClient from "./NewClient";
 
 const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
     const [clients, setClients] = useState<Client[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [newClientModal, setNewClientModal] = useState<boolean>(false);
+    const [aux, setAux] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -24,7 +27,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
             } finally { setIsLoading(false); }
         };
         if (selectedAccount.id) fetchData();
-    }, [selectedAccount.id]);
+    }, [selectedAccount.id, aux]);
 
     return (
         <div>
@@ -33,6 +36,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
                     Clientes - {selectedAccount.name}
                 </h2>
                 <button
+                    onClick={() => setNewClientModal(true)}
                     className="bg-verde font-semibold cursor-pointer text-white px-4 py-2 rounded-2xl hover:bg-verde/80"
                 >
                     Novo Cliente
@@ -79,6 +83,11 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
             </div>
 
             {isLoading && <Loading />}
+            {newClientModal &&
+                <NewClient
+                    onClose={() => setNewClientModal(false)}
+                    reload={() => setAux(!aux)}
+                    accountId={selectedAccount.id} />}
         </div>
     );
 };

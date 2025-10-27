@@ -5,6 +5,7 @@ import csrfRoutes from './csrf.routes';
 import accountRoutes from './account.routes';
 import clientRoutes from './client.routes';
 import broadcastRoutes from './broadcast.routes';
+import whatsappRoutes from './whatsapp.routes';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/csrf-token', csrfRoutes);
 router.use('/account', accountRoutes);
 router.use('/client', clientRoutes);
 router.use('/broadcast', broadcastRoutes);
+router.use('/whatsapp', whatsappRoutes);
 
 export default router;

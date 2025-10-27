@@ -1,6 +1,9 @@
 import { RequestHandler } from "express";
 import { ErrorLogger } from "../utils/errorLogger";
 import { prisma } from "../lib/prisma";
+import { WhatsAppCloudAPI } from "../services/whatsappCloudAPI";
+
+const whatsappService = new WhatsAppCloudAPI();
 
 export const Send: RequestHandler = async (req, res) => {
     try {
@@ -25,10 +28,12 @@ export const Send: RequestHandler = async (req, res) => {
 
         for (const recipient of broadcast.recipients) {
             try {
-                await sendWhatsAppMessage(
+                await whatsappService.enviar(
                     broadcast.account.phone,
+                    broadcast.account.apiKey,
                     recipient.client.phone,
-                    broadcast.message
+                    broadcast.message,
+                    broadcast.complement
                 );
 
                 await prisma.broadcastRecipient.update({
@@ -88,8 +93,3 @@ export const Send: RequestHandler = async (req, res) => {
         }
     }
 };
-
-
-const sendWhatsAppMessage = async (phone: string, clientPhone: string, message: string, complement?: string) => {
-    console.log(phone, clientPhone, message, complement);
-}
