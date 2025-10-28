@@ -11,7 +11,7 @@ export const Send: RequestHandler = async (req, res) => {
         if (!id) throw new Error('Faltam campos obrigatórios');
 
         const broadcast = await prisma.broadcast.findUnique({
-            where: { id, status: 'PENDING' },
+            where: { id },
             include: {
                 recipients: {
                     include: { client: true }
@@ -29,7 +29,7 @@ export const Send: RequestHandler = async (req, res) => {
         for (const recipient of broadcast.recipients) {
             try {
                 await whatsappService.enviar(
-                    broadcast.account.phone,
+                    broadcast.account.phoneId,
                     broadcast.account.apiKey,
                     recipient.client.phone,
                     broadcast.message,

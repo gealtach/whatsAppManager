@@ -46,11 +46,16 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
         try {
             const formData = new FormData();
 
+            const clientIdsToSend = Array.isArray(data.clientIds)
+                ? data.clientIds
+                : [data.clientIds]
+
+
             // Agregar datos del broadcast
             formData.append('name', data.name);
             formData.append('message', data.message);
             formData.append('accountId', accountId);
-            formData.append('clientIds', JSON.stringify(data.clientIds));
+            formData.append('clientIds', JSON.stringify(clientIdsToSend));
 
             if (data.scheduledAt) {
                 formData.append('scheduledAt', data.scheduledAt.toString());

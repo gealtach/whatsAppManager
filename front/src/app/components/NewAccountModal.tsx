@@ -13,6 +13,7 @@ type NewAcocuntForm = {
     phone: string;
     apiKey: string;
     authorized: string[];
+    phoneId: string;
 };
 
 
@@ -74,7 +75,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
         <div className="fixed inset-0 bg-white/70 flex justify-center items-center">
             <form
                 onSubmit={onSubmit}
-                className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col gap-5 items-center"
+                className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col gap-5 items-center border-2 border-verde"
             >
                 <div className="flex gap-6">
                     <div className="space-y-3">
@@ -97,7 +98,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             <input
                                 {...register("phone", {
                                     required: "Campo obrigatório",
-                                    pattern: { value: /^\d{9}$/, message: 'Apenas números (9)' }
+                                    pattern: { value: /^\d{12}$/, message: 'Apenas números (12)' }
                                 })}
                                 placeholder="999999"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
@@ -105,6 +106,21 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             />
                             {errors.phone && (
                                 <span className="text-red-400 text-sm">{errors.phone.message}</span>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span>Telemóvel ID</span>
+                            <input
+                                {...register("phoneId", {
+                                    required: "Campo obrigatório",
+                                    pattern: { value: /^\d+$/, message: 'Apenas números' }
+                                })}
+                                placeholder="999999"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
+                                type="text"
+                            />
+                            {errors.phoneId && (
+                                <span className="text-red-400 text-sm">{errors.phoneId.message}</span>
                             )}
                         </div>
                         <div className="flex flex-col gap-1">
@@ -217,12 +233,12 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 text-white">
                     <button
-                        className="px-6 py-3 font-semibold rounded-2xl bg-verde hover:bg-verde/80"
+                        className="px-6 py-3 font-semibold cursor-pointer rounded-2xl bg-verde hover:bg-verde/90"
                     >Submeter</button>
                     <button
-                        className="px-6 py-3 font-semibold rounded-2xl bg-gray-300 hover:bg-gray-400"
+                        className="px-6 py-3 font-semibold cursor-pointer rounded-2xl bg-gray-400 hover:bg-gray-400/90"
                         type="button"
                         onClick={onClose}
                     >Cancelar</button>

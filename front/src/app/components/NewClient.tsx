@@ -58,7 +58,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                         <input
                             {...register("phone", {
                                 required: "Campo obrigatório",
-                                pattern: { value: /^\d{9}$/, message: 'Apenas números (9)' }
+                                pattern: { value: /^\d{12}$/, message: 'Apenas números (12)' }
                             })}
                             placeholder="999999999"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"

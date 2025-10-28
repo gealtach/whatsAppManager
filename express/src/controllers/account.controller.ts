@@ -50,9 +50,9 @@ export const getAll: RequestHandler = async (req, res) => {
 
 export const create: RequestHandler = async (req, res) => {
     try {
-        const { name, phone, apiKey, authorized } = req.body;
+        const { name, phone, phoneId, apiKey, authorized } = req.body;
         console.log(req.body)
-        if (!name || !phone || !apiKey || !authorized) throw new Error('Faltam campos obrigatórios');
+        if (!name || !phone || !apiKey || !phoneId || !authorized) throw new Error('Faltam campos obrigatórios');
         if (!Array.isArray(authorized)
             || authorized.length < 1
             || !authorized.every(item => typeof item === 'string')) {
@@ -62,12 +62,15 @@ export const create: RequestHandler = async (req, res) => {
         const phoneExists = await prisma.account.findUnique({ where: { phone } });
         if (phoneExists) throw new Error('Telemóvel já registado');
 
+        const phoneIdExists = await prisma.account.findUnique({ where: { phoneId } });
+        if (phoneIdExists) throw new Error('Telemóvel ID já registado');
+
         const apikeyExist = await prisma.account.findFirst({ where: { apiKey } });
         if (apikeyExist) throw new Error('ApiKey já registada');
 
         await prisma.account.create({
             data: {
-                name, phone, apiKey,
+                name, phone, apiKey, phoneId,
                 accountUsers: {
                     create: authorized.map((userId: string) => ({
                         userId
@@ -87,6 +90,7 @@ export const create: RequestHandler = async (req, res) => {
                 'Faltam campos obrigatórios': { status: 400, message: 'Faltam campos obrigatórios' },
                 'Dados não compatíveis': { status: 400, message: 'Dados não compatíveis' },
                 'Telemóvel já registado': { status: 400, message: 'Telemóvel já registado' },
+                'Telemóvel ID já registado': { status: 400, message: 'Telemóvel ID já registado' },
                 'ApiKey já registada': { status: 400, message: 'ApiKey já registada' },
 
 

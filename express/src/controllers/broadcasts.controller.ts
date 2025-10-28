@@ -76,7 +76,6 @@ export const create: RequestHandler = async (req, res) => {
         if (!name || !message || !accountId || !clientIds) {
             throw new Error('Faltam campos obrigatórios');
         }
-        console.log(clientIds)
         if (!Array.isArray(clientIds) ||
             clientIds.length < 1 ||
             !clientIds.every(item => typeof item === 'string')) {

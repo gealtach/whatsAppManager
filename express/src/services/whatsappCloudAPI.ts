@@ -10,7 +10,7 @@ interface WhatsAppMessage {
 }
 
 export class WhatsAppCloudAPI {
-    private readonly baseURL = 'https://graph.facebook.com/v17.0';
+    private readonly baseURL = 'https://graph.facebook.com/v24.0';
 
     async enviar(phoneId: string, accessToken: string, toPhone: string, message: string, complement: string | null) {
         let messageData: WhatsAppMessage;
@@ -79,6 +79,7 @@ export class WhatsAppCloudAPI {
             });
 
             const result = await response.json();
+            console.log(result)
 
             if (!response.ok) {
                 throw new Error(`WhatsApp API Error: ${JSON.stringify(result)}`);
