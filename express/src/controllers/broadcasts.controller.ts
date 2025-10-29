@@ -1,74 +1,12 @@
 import { ErrorLogger } from "../utils/errorLogger";
 import { prisma } from "../lib/prisma";
-
 import { RequestHandler } from 'express';
-import multer from 'multer';
-import path from 'node:path';
+import { moveFileToFinalDestination } from "../middleware/uploadMiddleware";
 import fs from 'node:fs/promises';
-import { v4 as uuidv4 } from 'uuid';
-
-// Configuración de multer para almacenar archivos temporalmente
-const storage = multer.diskStorage({
-    destination: async (req, file, cb) => {
-        const uploadDir = path.join(process.cwd(), 'uploads', 'temp');
-        // Crear directorio si no existe
-        await fs.mkdir(uploadDir, { recursive: true });
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName);
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 100 * 1024 * 1024 // 100MB máximo
-    },
-    fileFilter: (req, file, cb) => {
-        const allowedMimes = [
-            'image/png',
-            'image/jpeg',
-            'image/jpg',
-            'image/gif',
-            'video/mp4',
-            'video/x-msvideo',
-            'video/quicktime',
-            'video/webm'
-        ];
-
-        if (allowedMimes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Tipo de arquivo não permitido'));
-        }
-    }
-});
-
-// Middleware de multer para manejo de archivo único
-export const uploadMiddleware = upload.single('file');
-
-// Función para mover el archivo a su ubicación final
-const moveFileToFinalDestination = async (
-    tempPath: string,
-    accountId: string,
-    filename: string
-): Promise<string> => {
-    const finalDir = path.join(process.cwd(), 'uploads', 'broadcasts', accountId);
-    await fs.mkdir(finalDir, { recursive: true });
-
-    const finalPath = path.join(finalDir, filename);
-    await fs.rename(tempPath, finalPath);
-
-    // Retornar URL relativa o absoluta según tu configuración
-    return `/uploads/broadcasts/${accountId}/${filename}`;
-};
 
 export const create: RequestHandler = async (req, res) => {
     try {
         const { name, message, accountId, scheduledAt } = req.body;
-
 
         const clientIds = JSON.parse(req.body.clientIds);
 
@@ -94,7 +32,7 @@ export const create: RequestHandler = async (req, res) => {
                 );
             } catch (fileError) {
                 console.error('Erro ao mover arquivo:', fileError);
-                // Tentar eliminar arquivo temporal
+                // Tentar eliminar archivo temporal
                 try {
                     await fs.unlink(req.file.path);
                 } catch (unlinkError) {

@@ -7,8 +7,11 @@ import { useState } from "react";
 import { Account } from "../Types";
 import ClientManager from "../components/ClientManager";
 import BroadcastManager from "../components/BroadcastManager";
+import { IoLogOut } from "react-icons/io5";
+import { useAuth } from "@/context/auth-context";
 
 const Page = () => {
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('accounts');
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>(undefined);
 
@@ -23,13 +26,18 @@ const Page = () => {
   return (
     <ProtectedPage redirectPath="/">
       <div className="min-h-screen bg-gray-100">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto flex items-center gap-3 px-4 py-6">
+        <header className="bg-white shadow flex justify-between">
+          <div className="max-w-7xl flex items-center gap-3 px-4 py-6">
             <FaWhatsapp className="text-verde" size={40} />
             <h1 className="text-3xl font-bold text-gray-900">
               WhatsApp Manager
             </h1>
           </div>
+          <button
+            onClick={logout}
+            className="text-red-500 mr-5 cursor-pointer">
+            <IoLogOut size={30} />
+          </button>
         </header>
         <main className="mx auto px-4 py-6">
           {/* Navigation Tabs */}
@@ -44,8 +52,8 @@ const Page = () => {
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex flex-col items-center ${(tab.id === 'clients' || tab.id === 'broadcasts') && !selectedAccount
-                      ? 'hidden'
-                      : 'cursor-pointer'
+                    ? 'hidden'
+                    : 'cursor-pointer'
                     }`}
                   disabled={(tab.id === 'clients' || tab.id === 'broadcasts') && !selectedAccount}
                 >

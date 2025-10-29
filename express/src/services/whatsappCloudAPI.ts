@@ -79,7 +79,6 @@ export class WhatsAppCloudAPI {
             });
 
             const result = await response.json();
-            console.log(result)
 
             if (!response.ok) {
                 throw new Error(`WhatsApp API Error: ${JSON.stringify(result)}`);

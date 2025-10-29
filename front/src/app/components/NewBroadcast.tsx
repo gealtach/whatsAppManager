@@ -208,7 +208,7 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
 
                         <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
                             {clients.length > 0 ? (
-                                clients.map((client) => (
+                                clients.filter(c => c.isActive === true).map((client) => (
                                     <label key={client.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
                                         <input
                                             {...register("clientIds", {
