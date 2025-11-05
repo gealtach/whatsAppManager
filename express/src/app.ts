@@ -1,12 +1,37 @@
-import express, { Application } from 'express';
+import express, { Application, NextFunction, Response, Request } from 'express';
 import routes from './routes';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler';
-import path from 'path';
+import path from 'node:path';
 
 const app: Application = express();
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+    // Content Security Policy COMPLETO
+    res.setHeader('Content-Security-Policy',
+        "default-src 'self'; " +
+        "script-src 'none'; " +      // No hay JS en API responses
+        "style-src 'none'; " +       // No hay CSS en API responses  
+        "img-src 'none'; " +         // No hay imágenes en API responses
+        "connect-src 'self'; " +     // Para preflight requests
+        "frame-ancestors 'none'; " + //Anti-clickjacking
+        "form-action 'none'; " +     // No hay formularios
+        "base-uri 'self'; " +
+        "object-src 'none'"
+    );
+
+    // Otros headers de seguridad
+    res.setHeader('X-Frame-Options', 'DENY'); ////Anti-clickjacking
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+
+    next();
+});
 
 if (process.env.NODE_ENV === 'production') {
     // En cPanel/hosting compartido, confía en el primer proxy
@@ -51,5 +76,13 @@ app.use(limiter);
 
 app.use('/', routes);
 app.use(errorHandler);
+
+app.use((req: Request, res: Response) => {
+    res.status(404).json({
+        error: 'Not Found',
+        message: `Cannot ${req.method} ${req.path}`,
+        statusCode: 404
+    });
+});
 
 export default app;

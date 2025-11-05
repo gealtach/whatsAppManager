@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { logAuthAction } from '../utils/authLogger';
 import { LoginBlocker } from '../utils/loginBlocker';
 import { getClientIp } from '../utils/networkUtils';
@@ -11,13 +11,16 @@ export const login: RequestHandler = async (req, res) => {
 
     try {
         const { email, password } = req.body;
+        const key = process.env.CORE_KEY;
+        const jwtoken = process.env.JWT;
+
+        if (!key || typeof key !== 'string' || !jwtoken || typeof jwtoken !== 'string') throw new Error('Faltam campos obrigatórios')
 
         if (!email || !password) {
             await logAuthAction('LOGIN_FAILED', email, undefined, req);
             throw new Error('Faltam campos obrigatórios');
         }
 
-        // ✅ Verificar si está bloqueado
         const blockCheck = await LoginBlocker.isBlocked(email, ipAddress);
         if (blockCheck.blocked) {
             await logAuthAction('BLOCKED_ATTEMPT', email, undefined, req);
@@ -34,7 +37,7 @@ export const login: RequestHandler = async (req, res) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-API-Key': process.env.CORE_KEY!
+                'X-API-Key': key
             },
             body: JSON.stringify({
                 email,
@@ -61,7 +64,7 @@ export const login: RequestHandler = async (req, res) => {
                 email: coreResponse.user.email,
                 role: coreResponse.user.role
             },
-            process.env.JWT_SECRET as string,
+            jwtoken,
             { expiresIn: '1d' }
         );
 
