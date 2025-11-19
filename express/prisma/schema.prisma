@@ -9,14 +9,19 @@ datasource db {
 }
 
 model Account {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String   @unique
-  phoneId   String   @unique
-  apiKey    String   @db.Text
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  phone          String   @unique
+  phoneId        String   @unique
+  apiKey         String   @db.Text
+  wabaId         String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  verifiedName   String?
+  qualityRating  String?
+  messagingTier  String?
+  lastVerifiedAt DateTime?
 
   accountUsers AccountUser[]
   clients      Client[]
@@ -51,15 +56,20 @@ model Client {
 }
 
 model Broadcast {
-  id          String          @id @default(uuid())
-  name        String
-  message     String
-  complement  String?         @db.Text
-  status      BroadcastStatus @default(PENDING)
-  scheduledAt DateTime?
-  sentAt      DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id               String          @id @default(uuid())
+  name             String
+  message          String
+  templateName     String
+  templateLanguage String
+  templateParams   Json?
+  totalRecipients  Int
+  status           BroadcastStatus @default(PENDING)
+  scheduledAt      DateTime?
+  sentAt           DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  sentCount        Int?
+  failedCount      Int?
 
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)

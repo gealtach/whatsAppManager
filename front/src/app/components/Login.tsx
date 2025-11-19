@@ -43,7 +43,7 @@ const Login = () => {
         <div>
             <form
                 onSubmit={onSubmit}
-                className='flex flex-col border justify-center items-center p-10 gap-5 w-fit bg-white rounded-2xl'>
+                className='flex flex-col border justify-center items-center p-10 gap-5 w-fit bg-green-300 rounded-2xl'>
                 <h1 className="text-2xl font-bold mb-4">Iniciar sessão</h1>
 
                 <div className='flex flex-col gap-3 w-full'>

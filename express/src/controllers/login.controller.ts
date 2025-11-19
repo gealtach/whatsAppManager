@@ -12,7 +12,7 @@ export const login: RequestHandler = async (req, res) => {
     try {
         const { email, password } = req.body;
         const key = process.env.CORE_KEY;
-        const jwtoken = process.env.JWT;
+        const jwtoken = process.env.JWT_SECRET;
 
         if (!key || typeof key !== 'string' || !jwtoken || typeof jwtoken !== 'string') throw new Error('Faltam campos obrigatórios')
 
@@ -87,7 +87,7 @@ export const login: RequestHandler = async (req, res) => {
             path: '/'
         });
 
-        // ✅ Login exitoso
+        // Login exitoso
         await logAuthAction('LOGIN_SUCCESS', email, coreResponse.user.userId, req);
 
         res.status(200).json({

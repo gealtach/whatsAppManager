@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { prisma } from "../lib/prisma";
 import { ErrorLogger } from "../utils/errorLogger";
+import { whatsappMarketingService } from "../services/whatsappCloudAPI";
 
 export const getAll: RequestHandler = async (req, res) => {
     try {
@@ -25,7 +26,8 @@ export const getAll: RequestHandler = async (req, res) => {
                     }
                 }
             }
-        })
+        });
+
         res.status(200).json({ message: '', ok: true, payload: acconunts });
         return;
     } catch (error) {
@@ -50,9 +52,17 @@ export const getAll: RequestHandler = async (req, res) => {
 
 export const create: RequestHandler = async (req, res) => {
     try {
-        const { name, phone, phoneId, apiKey, authorized } = req.body;
+        const {
+            name,
+            phone,
+            phoneId,
+            wabaId,
+            apiKey,
+            authorized
+        } = req.body;
         console.log(req.body)
-        if (!name || !phone || !apiKey || !phoneId || !authorized) throw new Error('Faltam campos obrigatórios');
+        if (!name || !phone || !apiKey || !phoneId || !authorized || !wabaId) throw new Error('Faltam campos obrigatórios');
+
         if (!Array.isArray(authorized)
             || authorized.length < 1
             || !authorized.every(item => typeof item === 'string')) {
@@ -68,16 +78,43 @@ export const create: RequestHandler = async (req, res) => {
         const apikeyExist = await prisma.account.findFirst({ where: { apiKey } });
         if (apikeyExist) throw new Error('ApiKey já registada');
 
-        await prisma.account.create({
-            data: {
-                name, phone, apiKey, phoneId,
-                accountUsers: {
-                    create: authorized.map((userId: string) => ({
-                        userId
-                    }))
-                }
-            }
-        });
+        try {
+            const accountInfo = await whatsappMarketingService.verifyAccount(
+                phoneId,
+                apiKey
+            );
+
+            // Crear la cuenta
+            const account = await prisma.account.create({
+                data: {
+                    name,
+                    phone,
+                    phoneId,
+                    wabaId: wabaId || null,
+                    apiKey,
+                    isActive: true,
+                    verifiedName: accountInfo.verified_name,
+                    qualityRating: accountInfo.quality_rating,
+                    messagingTier: accountInfo.messaging_limit_tier,
+                    lastVerifiedAt: new Date(),
+                },
+            });
+
+            res.status(201).json({
+                success: true,
+                account: {
+                    ...account,
+                    apiKey: '***' // No exponer el token completo
+                },
+            });
+
+        } catch (verifyError) {
+            res.status(400).json({
+                error: 'Invalid WhatsApp credentials',
+                details: verifyError instanceof Error ? verifyError.message : 'Unknown error'
+            });
+            return;
+        };
 
         res.status(201).json({ message: 'Cuenta criada com sucesso', ok: true });
         return;

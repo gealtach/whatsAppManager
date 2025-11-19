@@ -25,7 +25,7 @@ const Page = () => {
 
   return (
     <ProtectedPage redirectPath="/">
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen min-w-screen bg-white">
         <header className="bg-white shadow flex justify-between">
           <div className="max-w-7xl flex items-center gap-3 px-4 py-6">
             <FaWhatsapp className="text-verde" size={40} />

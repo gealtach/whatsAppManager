@@ -27,6 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
+        style={{
+          background: 'url("/waWall.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastContainer
@@ -43,7 +49,9 @@ export default function RootLayout({
           transition={Bounce}
         />
         <AuthProvider>
-          {children}
+          <div className="flex h-screen w-screen">
+            {children}
+          </div>
         </AuthProvider>
       </body>
     </html>
