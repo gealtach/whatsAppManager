@@ -2,7 +2,7 @@
 import { Request } from 'express';
 import { getClientIp, getUserAgent } from './networkUtils';
 import { prisma } from '../lib/prisma';
-import { Prisma } from '../generated/client';
+import { Prisma } from '@prisma/client';
 
 
 export interface ErrorLogData {
