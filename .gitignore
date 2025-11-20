@@ -1,6 +1,8 @@
 # Ignorar node_modules en cualquier carpeta
 **/node_modules/
 
+**/generated
+
 # Ignorar dist en cualquier carpeta
 **/dist/
 

@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { LoginBlocker } from './loginBlocker';
 import { Request } from 'express';
 import { getClientIp, getUserAgent } from './networkUtils';
+import { prisma } from '../lib/prisma';
 
-const prisma = new PrismaClient();
 
 export async function logAuthAction(
     action: 'LOGIN_SUCCESS' | 'LOGIN_FAILED' | 'LOGOUT' | 'BLOCKED_ATTEMPT',

@@ -1,9 +1,9 @@
 // src/utils/errorLogger.ts
-import { PrismaClient, Prisma } from '@prisma/client';
 import { Request } from 'express';
 import { getClientIp, getUserAgent } from './networkUtils';
+import { prisma } from '../lib/prisma';
+import { Prisma } from '../generated/client';
 
-const prisma = new PrismaClient();
 
 export interface ErrorLogData {
     userId?: string;
@@ -75,11 +75,11 @@ export class ErrorLogger {
             'authorization'
         ];
 
-        sensitiveFields.forEach(field => {
+        for (const field of sensitiveFields) {
             if (field in sanitized) {
                 sanitized[field] = '***REDACTED***';
             }
-        });
+        };
 
         return sanitized as Prisma.InputJsonValue;
     }
@@ -98,14 +98,14 @@ export class ErrorLogger {
             'proxy-authorization'
         ];
 
-        sensitiveHeaders.forEach(header => {
+        for (const header of sensitiveHeaders) {
             const lowerHeader = header.toLowerCase();
-            Object.keys(sanitized).forEach(key => {
+            for (const key of Object.keys(sanitized)) {
                 if (key.toLowerCase() === lowerHeader) {
                     sanitized[key] = '***REDACTED***';
                 }
-            });
-        });
+            };
+        };
 
         return sanitized as Prisma.InputJsonValue;
     }

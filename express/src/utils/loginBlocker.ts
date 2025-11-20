@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { Request } from 'express';
 import { getClientIp } from './networkUtils';
+import { prisma } from '../lib/prisma';
 
-const prisma = new PrismaClient();
 
 export class LoginBlocker {
     // Verificar si está bloqueado
