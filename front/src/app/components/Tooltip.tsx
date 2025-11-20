@@ -38,7 +38,7 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'right' })
     : "fixed z-50 px-3 py-2 bg-gray-800 text-white text-sm rounded-md shadow-lg transform -translate-y-1/2";
 
   return (
-    <button
+    <div
       className="relative"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
@@ -58,7 +58,7 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'right' })
           {text}
         </div>
       )}
-    </button>
+    </div>
   );
 };
 

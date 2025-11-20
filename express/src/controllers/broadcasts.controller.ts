@@ -7,18 +7,15 @@ export const create: RequestHandler = async (req, res) => {
     try {
         const {
             accountId,
-            name,
-            message,
             clientIds,
             scheduledAt,
             templateName,
-            templateLanguage = 'en_US',
+            templateLanguage = 'pt_PT',
             templateParams
         } = req.body;
 
-
         // Validaciones
-        if (!name || !message || !accountId || !clientIds) {
+        if ( !accountId || !clientIds) {
             throw new Error('Faltam campos obrigatórios');
         }
 
@@ -50,8 +47,6 @@ export const create: RequestHandler = async (req, res) => {
 
         const broadcast = await prisma.broadcast.create({
             data: {
-                name,
-                message,
                 templateName,
                 templateLanguage,
                 templateParams: templateParams || null,

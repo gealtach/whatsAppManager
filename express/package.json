@@ -10,9 +10,19 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "whatsapp",
+    "marketing",
+    "bulk-messaging",
+    "express",
+    "typescript"
+  ],
+  "author": "cleiva.dev",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gealtach/whatsAppManager.git"
+  },
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.18.0",

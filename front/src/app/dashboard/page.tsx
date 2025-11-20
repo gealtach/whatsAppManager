@@ -18,14 +18,14 @@ const Page = () => {
   // Función para manejar el cambio de tab
   const handleTabChange = (tabId: string) => {
     if (tabId === 'accounts') {
-      setSelectedAccount(undefined); // Limpiar cuenta seleccionada al volver a cuentas
+      setSelectedAccount(undefined);
     }
     setActiveTab(tabId);
   };
 
   return (
     <ProtectedPage redirectPath="/">
-      <div className="min-h-screen min-w-screen bg-white">
+      <div className="min-h-screen min-w-screen bg-background">
         <header className="bg-white shadow flex justify-between">
           <div className="max-w-7xl flex items-center gap-3 px-4 py-6">
             <FaWhatsapp className="text-verde" size={40} />
@@ -33,11 +33,11 @@ const Page = () => {
               WhatsApp Manager
             </h1>
           </div>
-          <button
-            onClick={logout}
-            className="text-red-500 mr-5 cursor-pointer">
-            <IoLogOut size={30} />
-          </button>
+            <button
+              onClick={logout}
+              className="text-red-500 mr-5 cursor-pointer">
+              <IoLogOut size={30} />
+            </button>
         </header>
         <main className="mx auto px-4 py-6">
           {/* Navigation Tabs */}

@@ -16,9 +16,10 @@ export const getTemplates: RequestHandler = async (req, res) => {
         const wabaId = account.wabaId || account.phoneId;
 
         const templates = await whatsappMarketingService.getMessageTemplates(wabaId, account.apiKey);
-        const approvedTemplates = templates.filter((t) => t.status === 'APPROVED');
+        //const approvedTemplates = templates.filter((t) => t.status === 'APPROVED');
 
-        res.status(200).json({ message: '', ok: true, payload: approvedTemplates });
+
+        res.status(200).json({ message: '', ok: true, payload: templates });
         return;
     } catch (error) {
         console.error(error);

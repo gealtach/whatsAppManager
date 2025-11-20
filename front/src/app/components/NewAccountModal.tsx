@@ -14,6 +14,7 @@ type NewAcocuntForm = {
     apiKey: string;
     authorized: string[];
     phoneId: string;
+    wabaId: string;
 };
 
 
@@ -80,7 +81,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                 <div className="flex gap-6">
                     <div className="space-y-3">
                         <div className="flex flex-col gap-1">
-                            <span>Conta</span>
+                            <span className="text-xs">Conta</span>
                             <input
                                 {...register("name", {
                                     required: "Campo obrigatório",
@@ -94,7 +95,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             )}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span>Telemóvel</span>
+                            <span className="text-xs">Telemóvel</span>
                             <input
                                 {...register("phone", {
                                     required: "Campo obrigatório",
@@ -109,7 +110,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             )}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span>Telemóvel ID</span>
+                            <span className="text-xs">Telemóvel ID</span>
                             <input
                                 {...register("phoneId", {
                                     required: "Campo obrigatório",
@@ -124,7 +125,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             )}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span>API Key</span>
+                            <span className="text-xs">API Key</span>
                             <input
                                 {...register("apiKey", {
                                     required: "Campo obrigatório",
@@ -135,6 +136,21 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                             />
                             {errors.apiKey && (
                                 <span className="text-red-400 text-sm">{errors.apiKey.message}</span>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs">WABA ID</span>
+                            <input
+                                {...register("wabaId", {
+                                    required: "Campo obrigatório",
+                                })}
+                                placeholder="WABA ID"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
+                                type="text"
+                            />
+                            {errors.wabaId && (
+                                <span className="text-red-400 text-sm">{errors.wabaId.message}</span>
                             )}
                         </div>
 

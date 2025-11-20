@@ -40,7 +40,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                 <h1 className="text-sm text-gray-600">Os campos com * são obrigatórios</h1>
                 <div className="flex flex-col gap-3 my-3">
                     <div className="flex flex-col gap-1">
-                        <span>Conta *</span>
+                        <span className="text-xs">Conta *</span>
                         <input
                             {...register("name", {
                                 required: "Campo obrigatório",
@@ -54,7 +54,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                         )}
                     </div>
                     <div className="flex flex-col gap-1">
-                        <span>Telemóvel *</span>
+                        <span className="text-xs">Telemóvel *</span>
                         <input
                             {...register("phone", {
                                 required: "Campo obrigatório",
@@ -69,7 +69,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                         )}
                     </div>
                     <div className="flex flex-col gap-1">
-                        <span>Email</span>
+                        <span className="text-xs">Email</span>
                         <input
                             {...register('email', {
                                 pattern: {
@@ -86,7 +86,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                         )}
                     </div>
                     <div className="flex flex-col gap-1">
-                        <span>Notas</span>
+                        <span className="text-xs">Notas</span>
                         <input
                             {...register("notes", {
                             })}

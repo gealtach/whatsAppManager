@@ -43,7 +43,7 @@ const Login = () => {
         <div>
             <form
                 onSubmit={onSubmit}
-                className='flex flex-col border justify-center items-center p-10 gap-5 w-fit bg-green-300 rounded-2xl'>
+                className='flex flex-col border justify-center items-center p-10 gap-5 w-fit bg-verde text-white rounded-2xl'>
                 <h1 className="text-2xl font-bold mb-4">Iniciar sessão</h1>
 
                 <div className='flex flex-col gap-3 w-full'>
@@ -57,7 +57,7 @@ const Login = () => {
                             }
                         })}
                         placeholder='Email'
-                        className='border rounded p-2 w-64'
+                        className='border-b rounded p-2 w-64 focus:outline-0 focus:ring-verde focus:ring-2'
                         type="email"
                     />
                     {errors.email && <span className='text-red-600 text-sm'>{errors.email.message}</span>}
@@ -74,7 +74,7 @@ const Login = () => {
                             }
                         })}
                         placeholder='*****'
-                        className='border rounded p-2 w-64'
+                        className='border-b rounded p-2 w-64 focus:outline-0 focus:ring-verde focus:ring-2'
                         type="password"
                     />
                     {errors.password && <span className='text-red-600 text-sm'>{errors.password.message}</span>}

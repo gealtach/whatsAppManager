@@ -60,7 +60,7 @@ export const create: RequestHandler = async (req, res) => {
             apiKey,
             authorized
         } = req.body;
-        console.log(req.body)
+
         if (!name || !phone || !apiKey || !phoneId || !authorized || !wabaId) throw new Error('Faltam campos obrigatórios');
 
         if (!Array.isArray(authorized)
@@ -85,7 +85,7 @@ export const create: RequestHandler = async (req, res) => {
             );
 
             // Crear la cuenta
-            const account = await prisma.account.create({
+            await prisma.account.create({
                 data: {
                     name,
                     phone,
@@ -97,14 +97,6 @@ export const create: RequestHandler = async (req, res) => {
                     qualityRating: accountInfo.quality_rating,
                     messagingTier: accountInfo.messaging_limit_tier,
                     lastVerifiedAt: new Date(),
-                },
-            });
-
-            res.status(201).json({
-                success: true,
-                account: {
-                    ...account,
-                    apiKey: '***' // No exponer el token completo
                 },
             });
 
@@ -131,6 +123,99 @@ export const create: RequestHandler = async (req, res) => {
                 'ApiKey já registada': { status: 400, message: 'ApiKey já registada' },
 
 
+            };
+            const errorResponse = errorMap[error.message] || { status: 500, message: 'Erro interno do servidor' };
+            res.status(errorResponse.status).json({
+                message: errorResponse.message,
+                ok: false
+            });
+        } else {
+            await ErrorLogger.logAuthError(new Error('Unknown error'), req.body?.email, req);
+            res.status(500).json({ message: 'Erro interno do servidor', ok: false });
+        }
+    }
+};
+
+export const verify: RequestHandler = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) throw new Error('Faltam campos obrigatórios');
+
+        const account = await prisma.account.findUnique({
+            where: { id },
+        });
+
+        if (!account) throw new Error('Conta não encontrada');
+
+        const accountInfo = await whatsappMarketingService.verifyAccount(
+            account.phoneId,
+            account.apiKey
+        );
+
+        // Actualizar información
+        const updatedAccount = await prisma.account.update({
+            where: { id },
+            data: {
+                verifiedName: accountInfo.verified_name,
+                qualityRating: accountInfo.quality_rating,
+                messagingTier: accountInfo.messaging_limit_tier,
+                lastVerifiedAt: new Date(),
+            },
+        });
+
+        res.json({
+            ok: true,
+            account: {
+                ...updatedAccount,
+                apiKey: updatedAccount.apiKey.substring(0, 10) + '***',
+            },
+            info: accountInfo,
+        });
+
+    } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+            await ErrorLogger.logAuthError(error, req.body?.email, req);
+            const errorMap: { [key: string]: { status: number; message: string } } = {
+                'Conta não encontrada': { status: 404, message: 'Conta não encontrada' },
+                'Faltam campos obrigatórios': { status: 400, message: 'Faltam campos obrigatórios' },
+            };
+            const errorResponse = errorMap[error.message] || { status: 500, message: 'Erro interno do servidor' };
+            res.status(errorResponse.status).json({
+                message: errorResponse.message,
+                ok: false
+            });
+        } else {
+            await ErrorLogger.logAuthError(new Error('Unknown error'), req.body?.email, req);
+            res.status(500).json({ message: 'Erro interno do servidor', ok: false });
+        }
+    }
+};
+
+export const deleteAccount: RequestHandler = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) throw new Error('Faltam campos obrigatórios');
+
+        const account = await prisma.account.findUnique({
+            where: { id },
+        });
+
+        if (!account) throw new Error('Conta não encontrada');
+
+        await prisma.account.delete({
+            where: { id },
+        });
+
+        res.status(200).json({ message: 'Conta eliminada com sucesso', ok: true });
+        return;
+    } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+            await ErrorLogger.logAuthError(error, req.body?.email, req);
+            const errorMap: { [key: string]: { status: number; message: string } } = {
+                'Conta não encontrada': { status: 404, message: 'Conta não encontrada' },
+                'Faltam campos obrigatórios': { status: 400, message: 'Faltam campos obrigatórios' },
             };
             const errorResponse = errorMap[error.message] || { status: 500, message: 'Erro interno do servidor' };
             res.status(errorResponse.status).json({

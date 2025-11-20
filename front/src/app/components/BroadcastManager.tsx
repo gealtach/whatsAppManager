@@ -1,11 +1,17 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Account, Broadcast, Client } from "../Types";
+import { Account, Broadcast, Client, MessageTemplate } from "../Types";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
 import NewBroadcast from "./NewBroadcast";
+import TemplateViewer from "./TemplateViewer";
+import Tooltip from "./Tooltip";
+import { IoIosCloseCircle } from "react-icons/io";
+import { MdPending } from "react-icons/md";
+import { FaCheck } from "react-icons/fa";
+import { CiWarning } from "react-icons/ci";
 
 const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => {
     const [clients, setClients] = useState<Client[]>([]);
@@ -13,6 +19,10 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
     const [newBroadcastModal, setNewBroadcastModal] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [aux, setAux] = useState<boolean>(false);
+    const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | undefined>(undefined);
+    const [viewTemplate, setViewTemplate] = useState<boolean>(false);
+    const [selectedBroadcast, setSelectedBroadcast] = useState<Broadcast | undefined>(undefined);
 
     const sendBroadcast = async (broadcastId: string) => {
         try {
@@ -27,28 +37,54 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
             if (error instanceof Error) toast.error(error.message);
             else toast.error('Erro desconhecido');
         } finally { setIsLoading(false); }
+    };
+
+    const openViewer = (id: string) => {
+        const selectedBc = broadcasts.find(bc => bc.id === id);
+        setSelectedBroadcast(selectedBc);
+        if (selectedBc) {
+            const selectedT = templates.find(t => t.name === selectedBc.templateName);
+            setSelectedTemplate(selectedT);
+            setViewTemplate(true);
+        }
+    };
+
+    const closeViewer = () => {
+        setSelectedTemplate(undefined);
+        setSelectedBroadcast(undefined);
+        setViewTemplate(false);
+    };
+
+    const recipientStatusIcon = (status: string) => {
+        if (status === 'PENDING') return <Tooltip text="Pendiente"><MdPending className="text-blue-500" size={20} /></Tooltip>
+        if (status === 'SENT') return <Tooltip text="Enviado"><FaCheck className="text-verde" size={20} /></Tooltip>
+        if (status === 'PENDING') return <Tooltip text="Falhou o envio"><CiWarning className="text-red-500" size={20} /></Tooltip>
     }
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const [clientResponse, broadcastResponse] = await Promise.all([
+                const [clientResponse, broadcastResponse, templatesResponse] = await Promise.all([
                     fetchClient.get(`/client/${selectedAccount.id}`),
-                    fetchClient.get(`/broadcast/${selectedAccount.id}`)
+                    fetchClient.get(`/broadcast/${selectedAccount.id}`),
+                    fetchClient.get(`/template/${selectedAccount.id}`)
                 ]);
 
-                const [clientAns, broadcastAns] = await Promise.all([
+                const [clientAns, broadcastAns, templatesAns] = await Promise.all([
                     clientResponse.json(),
-                    broadcastResponse.json()
+                    broadcastResponse.json(),
+                    templatesResponse.json()
                 ]);
-                console.log(broadcastAns)
 
                 if (clientResponse.ok) setClients(clientAns.payload);
                 else toast.error(clientAns.message);
 
                 if (broadcastResponse.ok) setBroadcasts(broadcastAns.payload);
                 else toast.error(broadcastAns.message);
+
+                if (templatesResponse.ok) setTemplates(templatesAns.payload);
+                else toast.error(templatesAns.message);
             } catch (error) {
                 if (error instanceof Error) toast.error(error.message);
                 else toast.error('Erro desconhecido');
@@ -73,10 +109,10 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                 {broadcasts.map((broadcast) => (
                     <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
                         <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="font-bold text-lg">{broadcast.name}</h3>
-                                <p className="text-gray-600 mt-2">{broadcast.message}</p>
-                                <div className="mt-2 text-sm text-gray-500">
+                            <button className="cursor-pointer"
+                                onClick={() => openViewer(broadcast.id)}>
+                                <div className="mt-2 text-sm text-gray-500 space-x-5">
+                                    <span>Template: {broadcast.templateName}</span>
                                     <span>Destinatarios: {broadcast.recipients.length}</span>
                                     <span className="ml-4">Estado: {broadcast.status}</span>
                                     {broadcast.sentAt && (
@@ -85,11 +121,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                                         </span>
                                     )}
                                 </div>
-                                <div><a
-                                    className="text-blue-500 underline"
-                                    target="_blank"
-                                    href={broadcast.complement}>Link</a></div>
-                            </div>
+                            </button>
                             {broadcast.status === 'PENDING' && (
                                 <button
                                     onClick={() => sendBroadcast(broadcast.id)}
@@ -109,6 +141,41 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                     onClose={() => setNewBroadcastModal(false)}
                     reload={() => setAux(!aux)}
                     accountId={selectedAccount.id} />
+            }
+            {
+                selectedTemplate && viewTemplate && selectedBroadcast &&
+                <div className="fixed inset-0 bg-white/30 flex items-center justify-center">
+                    <div className="bg-white border-verde border-2 p-5 rounded-2xl">
+                        <button
+                            onClick={closeViewer}
+                            className="hover:text-red-500 cursor-pointer">
+                            <Tooltip text="Fechar">
+                                <IoIosCloseCircle size={30} />
+                            </Tooltip>
+                        </button>
+                        <div className="flex gap-5">
+                            <TemplateViewer template={selectedTemplate} />
+                            <div>
+                                <h1 className="text-xl mb-3">Enviar para:</h1>
+                                <div className="h-[300px] overflow-scroll bg-slate-50 p-4 rounded-2xl">
+                                    {
+                                        selectedBroadcast.recipients.map(r => (
+                                            <div key={r.id} className="flex gap-3">
+                                                <span>{r.client.phone} - {r.client.name}</span>
+                                                {recipientStatusIcon(r.status)}
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-3 text-xs my-3">
+                            <span>Estado: {selectedBroadcast.status}</span>
+                            <span>Agendado: {selectedBroadcast.scheduledAt?.toISOString() || 'Sem agendamento'}</span>
+                            <span>Enviado: {selectedBroadcast.sentAt?.toISOString() || 'Ainda não foi enviado'}</span>
+                        </div>
+                    </div>
+                </div>
             }
         </div>
     );

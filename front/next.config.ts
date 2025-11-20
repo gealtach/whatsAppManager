@@ -5,9 +5,10 @@ const getCSP = (isProduction = false) => {
     default-src 'self';
     script-src 'self' 'unsafe-inline' ${isProduction ? '' : "'unsafe-eval'"};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: https:;
+    img-src 'self' data: blob: https://scontent.whatsapp.net https://*.whatsapp.net;
+    media-src 'self' blob: https://scontent.whatsapp.net https://*.whatsapp.net;
     font-src 'self' data: https://fonts.gstatic.com;
-    connect-src 'self' ${isProduction ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:3001'};
+    connect-src 'self' ${isProduction ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:3001'} https://scontent.whatsapp.net https://*.whatsapp.net;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
@@ -57,6 +58,19 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  images: {
+    domains: ['scontent.whatsapp.net'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'scontent.whatsapp.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.whatsapp.net',
+      },
+    ],
   },
 }
 

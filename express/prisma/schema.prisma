@@ -9,15 +9,15 @@ datasource db {
 }
 
 model Account {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   name           String
-  phone          String   @unique
-  phoneId        String   @unique
-  apiKey         String   @db.Text
+  phone          String    @unique
+  phoneId        String    @unique
+  apiKey         String    @db.Text
   wabaId         String
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   verifiedName   String?
   qualityRating  String?
   messagingTier  String?
@@ -56,25 +56,35 @@ model Client {
 }
 
 model Broadcast {
-  id               String          @id @default(uuid())
-  name             String
-  message          String
+  id         String  @id @default(uuid())
+
+  // Información de la plantilla
   templateName     String
-  templateLanguage String
-  templateParams   Json?
-  totalRecipients  Int
-  status           BroadcastStatus @default(PENDING)
-  scheduledAt      DateTime?
-  sentAt           DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  sentCount        Int?
-  failedCount      Int?
+  templateLanguage String @default("en_US")
+  templateParams   Json? // Parámetros dinámicos de la plantilla
+
+  status      BroadcastStatus @default(PENDING)
+  scheduledAt DateTime?
+  startedAt   DateTime? // Cuando comenzó el envío
+  sentAt      DateTime? // Cuando terminó el envío
+
+  // Estadísticas
+  totalRecipients Int @default(0)
+  sentCount       Int @default(0)
+  deliveredCount  Int @default(0)
+  readCount       Int @default(0)
+  failedCount     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   recipients BroadcastRecipient[]
+
+  @@index([accountId])
+  @@index([status])
 }
 
 model BroadcastRecipient {
