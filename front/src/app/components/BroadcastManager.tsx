@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Account, Broadcast, Client, MessageTemplate } from "../Types";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
@@ -22,12 +22,13 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
     const sendBroadcast = async (broadcastId: string) => {
         try {
             setIsLoading(true);
-            const response = await fetchClient.post(`/whatsapp/send/${broadcastId}`);
+            const bc = broadcasts.find(b => b.id === broadcastId);
+            const template = templates.find(t => t.name === bc?.templateName);
+            const response = await fetchClient.post(`/broadcast/send/${broadcastId}`, { template });
             const ans = await response.json();
-            if (response.ok) {
-                toast.success(ans.message);
-                setAux(!aux);
-            } else toast.error(ans.message);
+            if (response.ok) toast.success(ans.message);
+            else toast.error(ans.message);
+            setAux(!aux);
         } catch (error) {
             if (error instanceof Error) toast.error(error.message);
             else toast.error('Erro desconhecido');
@@ -50,37 +51,38 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
         setViewTemplate(false);
     };
 
+    const fetchData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const [clientResponse, broadcastResponse, templatesResponse] = await Promise.all([
+                fetchClient.get(`/client/${selectedAccount.id}`),
+                fetchClient.get(`/broadcast/${selectedAccount.id}`),
+                fetchClient.get(`/template/${selectedAccount.id}`)
+            ]);
+
+            const [clientAns, broadcastAns, templatesAns] = await Promise.all([
+                clientResponse.json(),
+                broadcastResponse.json(),
+                templatesResponse.json()
+            ]);
+
+            if (clientResponse.ok) setClients(clientAns.payload);
+            else toast.error(clientAns.message);
+
+            if (broadcastResponse.ok) setBroadcasts(broadcastAns.payload);
+            else toast.error(broadcastAns.message);
+
+            if (templatesResponse.ok) setTemplates(templatesAns.payload);
+            else toast.error(templatesAns.message);
+        } catch (error) {
+            if (error instanceof Error) toast.error(error.message);
+            else toast.error('Erro desconhecido');
+        } finally { setIsLoading(false); }
+    }, [selectedAccount.id]);
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const [clientResponse, broadcastResponse, templatesResponse] = await Promise.all([
-                    fetchClient.get(`/client/${selectedAccount.id}`),
-                    fetchClient.get(`/broadcast/${selectedAccount.id}`),
-                    fetchClient.get(`/template/${selectedAccount.id}`)
-                ]);
-
-                const [clientAns, broadcastAns, templatesAns] = await Promise.all([
-                    clientResponse.json(),
-                    broadcastResponse.json(),
-                    templatesResponse.json()
-                ]);
-
-                if (clientResponse.ok) setClients(clientAns.payload);
-                else toast.error(clientAns.message);
-
-                if (broadcastResponse.ok) setBroadcasts(broadcastAns.payload);
-                else toast.error(broadcastAns.message);
-
-                if (templatesResponse.ok) setTemplates(templatesAns.payload);
-                else toast.error(templatesAns.message);
-            } catch (error) {
-                if (error instanceof Error) toast.error(error.message);
-                else toast.error('Erro desconhecido');
-            } finally { setIsLoading(false); }
-        };
         fetchData();
-    }, [selectedAccount.id, aux]);
+    }, [fetchData, aux]);
 
     return (
         <div>

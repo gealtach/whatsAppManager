@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 import { useState, useEffect, useCallback } from "react";
-import { Client, MessageTemplate } from "../Types";
+import { Client, MessageTemplate, ReqFields } from "../Types";
 import { toast } from "react-toastify";
 import { fetchClient } from "../lib/fetchClient";
 import TemplateViewer from "./TemplateViewer";
@@ -20,6 +20,7 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | undefined>(undefined);
+
 
     // Función para manejar "Seleccionar todos"
     const handleSelectAll = () => {
@@ -73,7 +74,10 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
             setIsLoading(true);
             const response = await fetchClient.get(`/template/${accountId}`);
             const ans = await response.json();
-            if (response.ok) setTemplates(ans.payload);
+            if (response.ok) {
+                console.log(ans.payload)
+                setTemplates(ans.payload.approvedTemplates);
+            }
             else throw new Error(ans.message);
         } catch (error) {
             if (error instanceof Error) toast.error(error.message);
@@ -87,14 +91,14 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
 
     return (
         <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
-            <form onSubmit={onSubmit} className="p-5 px-10 gap-10 bg-white flex items-center rounded-2xl border-2 border-verde max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="w-1/2">
+            <form onSubmit={onSubmit} className="p-5 px-10 gap-10 bg-white flex items-center rounded-2xl border-2 border-verde mx-5 w-full max-h-[90vh] overflow-y-auto">
+                <div className="w-1/4">
                     {
                         selectedTemplate &&
                         <TemplateViewer template={selectedTemplate}></TemplateViewer>
                     }
                 </div>
-                <div className="w-1/2">
+                <div className="w-1/4">
                     <h1 className="text-xl font-semibold">Nova Difusão</h1>
                     <h1 className="text-sm text-gray-600">Os campos com * são obrigatórios</h1>
 
@@ -205,6 +209,13 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
                             Cancelar
                         </button>
                     </div>
+                </div>
+                <div className="w-1/4">
+                    {
+                    }
+                </div>
+                <div className="w-1/4">
+
                 </div>
             </form>
             {isLoading && <Loading />}

@@ -15,7 +15,7 @@ export const create: RequestHandler = async (req, res) => {
         } = req.body;
 
         // Validaciones
-        if ( !accountId || !clientIds) {
+        if (!accountId || !clientIds) {
             throw new Error('Faltam campos obrigatórios');
         }
 
@@ -192,6 +192,7 @@ export const deleteBC: RequestHandler = async (req, res) => {
 export const send: RequestHandler = async (req, res) => {
     try {
         const { id } = req.params;
+        const { template } = req.body
         if (!id) throw new Error('Faltam campos obrigatórios');
 
         const broadcast = await prisma.broadcast.findUnique({
@@ -228,17 +229,6 @@ export const send: RequestHandler = async (req, res) => {
             name: r.client.name,
         }));
 
-        const templateParams = broadcast.templateParams
-            ? (typeof broadcast.templateParams === 'string'
-                ? JSON.parse(broadcast.templateParams)
-                : broadcast.templateParams)
-            : null;
-
-        const template = whatsappMarketingService.buildTemplate(
-            broadcast.templateName,
-            broadcast.templateLanguage,
-            templateParams?.body // ['Nombre', 'Otro param']
-        );
 
         res.status(202).json({
             success: true,

@@ -53,7 +53,6 @@ const TemplateViewer = ({ template }: { template: MessageTemplate }) => {
                     </div>
                 );
             case 'VIDEO':
-                console.log(header.example?.header_handle?.[0])
                 return (
                     <div key={`header-${index}`} className="border-b border-gray-200">
                         <div className="p-4">

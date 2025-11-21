@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { ErrorLogger } from "../utils/errorLogger";
 import { prisma } from "../lib/prisma";
-import { whatsappMarketingService } from "../services/whatsappCloudAPI";
+import { MessageTemplate, whatsappMarketingService } from "../services/whatsappCloudAPI";
 
 export const getTemplates: RequestHandler = async (req, res) => {
     try {
@@ -16,10 +16,10 @@ export const getTemplates: RequestHandler = async (req, res) => {
         const wabaId = account.wabaId || account.phoneId;
 
         const templates = await whatsappMarketingService.getMessageTemplates(wabaId, account.apiKey);
-        //const approvedTemplates = templates.filter((t) => t.status === 'APPROVED');
+        const approvedTemplates = templates.filter((t) => t.status === 'APPROVED');
+        const reqArray = approvedTemplates.map(t => getRequieredFields(t));
 
-
-        res.status(200).json({ message: '', ok: true, payload: templates });
+        res.status(200).json({ message: '', ok: true, payload: { approvedTemplates, reqArray } });
         return;
     } catch (error) {
         console.error(error);
@@ -40,4 +40,35 @@ export const getTemplates: RequestHandler = async (req, res) => {
         }
     }
 };
+
+interface ReqFields {
+    type: string;
+    parameters: [
+        {
+            type: string,
+            image: { link: string }
+        }
+    ]
+}
+
+const getRequieredFields = (template: MessageTemplate) => {
+    const name = template.name;
+    const requieredFields: ReqFields[] = [];
+    template.components?.map(c => {
+        if (c.type === 'HEADER') {
+            if (c.format === 'IMAGE') {
+                requieredFields.push({
+                    type: "header",
+                    parameters: [
+                        {
+                            type: 'image',
+                            "image": { link: '' }
+                        }
+                    ]
+                })
+            }
+        }
+    });
+    return { name, requieredFields }
+}
 

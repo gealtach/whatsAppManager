@@ -3,10 +3,13 @@ import axios from 'axios';
 
 interface MessageTemplate {
     name: string;
-    language: string;
-    status?:string;
+    language: {
+        code: string;
+    };
+    status?: string;
     components?: Array<{
         type: string;
+        format: string;
         parameters: Array<{
             type: string;
             text: string;
@@ -28,7 +31,7 @@ interface SendMessageResponse {
 }
 
 class WhatsAppMarketingService {
-    private readonly baseUrl = 'https://graph.facebook.com/v21.0';
+    private readonly baseUrl = 'https://graph.facebook.com/v24.0';
 
     /**
      * Envía un mensaje usando Marketing Messages API
@@ -183,34 +186,6 @@ class WhatsAppMarketingService {
             }
             throw error;
         }
-    }
-
-    /**
-     * Construye una plantilla con parámetros dinámicos
-     */
-    buildTemplate(
-        templateName: string,
-        languageCode: string = 'en',
-        bodyParameters?: string[]
-    ): MessageTemplate {
-        const template: MessageTemplate = {
-            name: templateName,
-            language: languageCode,
-        };
-
-        if (bodyParameters && bodyParameters.length > 0) {
-            template.components = [
-                {
-                    type: 'body',
-                    parameters: bodyParameters.map(param => ({
-                        type: 'text',
-                        text: param,
-                    })),
-                },
-            ];
-        }
-
-        return template;
     }
 }
 

@@ -9,11 +9,10 @@ import { FaCheck } from "react-icons/fa";
 import { MdPending } from "react-icons/md";
 
 const BroadcastModal = ({ onClose, broadcast, template }: { onClose: () => void, template: MessageTemplate, broadcast: Broadcast }) => {
-
     const recipientStatusIcon = (status: string) => {
         if (status === 'PENDING') return <Tooltip text="Pendente"><MdPending className="text-blue-500" size={20} /></Tooltip>
         if (status === 'SENT') return <Tooltip text="Enviado"><FaCheck className="text-verde" size={20} /></Tooltip>
-        if (status === 'PENDING') return <Tooltip text="Falhou o envio"><CiWarning className="text-red-500" size={20} /></Tooltip>
+        if (status === 'FAILED') return <Tooltip text="Falhou o envio"><CiWarning className="text-red-500" size={20} /></Tooltip>
     }
     return (
         <div className="fixed inset-0 bg-white/30 flex items-center justify-center">

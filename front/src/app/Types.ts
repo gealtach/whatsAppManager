@@ -180,3 +180,14 @@ export interface TemplateComponentWithParameters {
     type: 'header' | 'body' | 'button';
     parameters: TemplateParameter[];
 }
+
+
+export interface ReqFields {
+    type: string;
+    parameters: [
+        {
+            type: string,
+            image: { link: string }
+        }
+    ]
+}
