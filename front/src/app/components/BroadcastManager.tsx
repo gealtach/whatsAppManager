@@ -6,12 +6,7 @@ import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
 import NewBroadcast from "./NewBroadcast";
-import TemplateViewer from "./TemplateViewer";
-import Tooltip from "./Tooltip";
-import { IoIosCloseCircle } from "react-icons/io";
-import { MdPending } from "react-icons/md";
-import { FaCheck } from "react-icons/fa";
-import { CiWarning } from "react-icons/ci";
+import BroadcastModal from "./BroadcastModal";
 
 const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => {
     const [clients, setClients] = useState<Client[]>([]);
@@ -55,12 +50,6 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
         setViewTemplate(false);
     };
 
-    const recipientStatusIcon = (status: string) => {
-        if (status === 'PENDING') return <Tooltip text="Pendiente"><MdPending className="text-blue-500" size={20} /></Tooltip>
-        if (status === 'SENT') return <Tooltip text="Enviado"><FaCheck className="text-verde" size={20} /></Tooltip>
-        if (status === 'PENDING') return <Tooltip text="Falhou o envio"><CiWarning className="text-red-500" size={20} /></Tooltip>
-    }
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -92,6 +81,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
         };
         fetchData();
     }, [selectedAccount.id, aux]);
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -109,7 +99,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                 {broadcasts.map((broadcast) => (
                     <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
                         <div className="flex justify-between items-start">
-                            <button className="cursor-pointer"
+                            <button className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
                                 onClick={() => openViewer(broadcast.id)}>
                                 <div className="mt-2 text-sm text-gray-500 space-x-5">
                                     <span>Template: {broadcast.templateName}</span>
@@ -144,38 +134,10 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
             }
             {
                 selectedTemplate && viewTemplate && selectedBroadcast &&
-                <div className="fixed inset-0 bg-white/30 flex items-center justify-center">
-                    <div className="bg-white border-verde border-2 p-5 rounded-2xl">
-                        <button
-                            onClick={closeViewer}
-                            className="hover:text-red-500 cursor-pointer">
-                            <Tooltip text="Fechar">
-                                <IoIosCloseCircle size={30} />
-                            </Tooltip>
-                        </button>
-                        <div className="flex gap-5">
-                            <TemplateViewer template={selectedTemplate} />
-                            <div>
-                                <h1 className="text-xl mb-3">Enviar para:</h1>
-                                <div className="h-[300px] overflow-scroll bg-slate-50 p-4 rounded-2xl">
-                                    {
-                                        selectedBroadcast.recipients.map(r => (
-                                            <div key={r.id} className="flex gap-3">
-                                                <span>{r.client.phone} - {r.client.name}</span>
-                                                {recipientStatusIcon(r.status)}
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-3 text-xs my-3">
-                            <span>Estado: {selectedBroadcast.status}</span>
-                            <span>Agendado: {selectedBroadcast.scheduledAt?.toISOString() || 'Sem agendamento'}</span>
-                            <span>Enviado: {selectedBroadcast.sentAt?.toISOString() || 'Ainda não foi enviado'}</span>
-                        </div>
-                    </div>
-                </div>
+                <BroadcastModal
+                    onClose={closeViewer}
+                    template={selectedTemplate}
+                    broadcast={selectedBroadcast} />
             }
         </div>
     );
