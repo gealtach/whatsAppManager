@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Client, MessageTemplate, ReqFields } from "../Types";
 import { toast } from "react-toastify";
 import { fetchClient } from "../lib/fetchClient";
@@ -15,12 +15,80 @@ type NewBroadcastForm = {
     accountId: string;
 }
 
-const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => void, reload: () => void, accountId: string, clients: Client[] }) => {
+// Tipo para los parámetros del template
+type TemplateParam = {
+    [key: string]: string;
+}
+
+const NewBroadcast = ({
+    onClose,
+    reload,
+    accountId,
+    clients,
+    templates,
+    reqArray
+}: {
+    onClose: () => void,
+    reload: () => void,
+    accountId: string,
+    clients: Client[],
+    templates: MessageTemplate[],
+    reqArray: { name: string, requiredFields: ReqFields[] }[],
+}) => {
     const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<NewBroadcastForm>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [templates, setTemplates] = useState<MessageTemplate[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | undefined>(undefined);
+    const [selectedModel, setSelectedModel] = useState<{ name: string, requiredFields: ReqFields[] } | undefined>(undefined);
+    const [templateParams, setTemplateParams] = useState<TemplateParam>({});
 
+    // Handler para los inputs dinámicos
+    const handleParamChange = (fieldIndex: number, paramIndex: number, value: string) => {
+        const key = `${fieldIndex}-${paramIndex}`;
+        setTemplateParams(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+    // Función para construir el objeto template completo
+    const buildTemplateObject = () => {
+        if (!selectedTemplate || !selectedModel) return null;
+
+        const components = selectedModel.requiredFields.map((field, fieldIndex) => {
+            const parameters = field.parameters.map((param, paramIndex) => {
+                const key = `${fieldIndex}-${paramIndex}`;
+                const value = templateParams[key] || "";
+
+                // Construir el objeto parameter según el tipo
+                if (param.type === "image") {
+                    return {
+                        type: "image",
+                        image: {
+                            link: value
+                        }
+                    };
+                } else {
+                    return {
+                        type: param.type,
+                        text: value
+                    };
+                }
+            });
+
+            return {
+                type: field.type,
+                parameters
+            };
+        });
+
+        return {
+            name: selectedTemplate.name,
+            language: {
+                code: selectedTemplate.language || "es" // Fallback a "es" si no hay language
+            },
+            components
+        };
+    };
 
     // Función para manejar "Seleccionar todos"
     const handleSelectAll = () => {
@@ -38,9 +106,14 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
     useEffect(() => {
         if (template !== '') {
             const selected = templates.find(t => t.name === template);
+            const selectedReq = reqArray.find(t => t.name === template);
+            console.log(selected)
             setSelectedTemplate(selected);
+            setSelectedModel(selectedReq);
+            // Limpiar parámetros cuando cambia el template
+            setTemplateParams({});
         }
-    }, [templates, template]);
+    }, [templates, template, reqArray]);
 
     const onSubmit = handleSubmit(async (data) => {
         setIsLoading(true);
@@ -49,9 +122,19 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
         }
 
         try {
-            data.accountId = accountId;
-            const response = await fetchClient.post('/broadcast', data);
+            // Construir el objeto template
+            const templateObject = buildTemplateObject();
+            console.log("Template object:", templateObject);
 
+            data.accountId = accountId;
+
+            // Enviar los datos incluyendo el template
+            const requestData = {
+                ...data,
+                template: templateObject
+            };
+
+            const response = await fetchClient.post('/broadcast', requestData);
             const result = await response.json();
 
             if (response.ok) {
@@ -68,26 +151,6 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
             setIsLoading(false);
         }
     });
-
-    const fetchData = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetchClient.get(`/template/${accountId}`);
-            const ans = await response.json();
-            if (response.ok) {
-                console.log(ans.payload)
-                setTemplates(ans.payload.approvedTemplates);
-            }
-            else throw new Error(ans.message);
-        } catch (error) {
-            if (error instanceof Error) toast.error(error.message);
-            else toast.error('Erro desconhecido');
-        } finally { setIsLoading(false); }
-    }, [accountId]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
 
     return (
         <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
@@ -212,6 +275,23 @@ const NewBroadcast = ({ onClose, reload, accountId, clients }: { onClose: () => 
                 </div>
                 <div className="w-1/4">
                     {
+                        selectedModel?.requiredFields?.map((field, fieldIndex) => (
+                            field.parameters.map((param, paramIndex) => {
+                                const key = `${fieldIndex}-${paramIndex}`;
+                                return (
+                                    <div key={key} className="flex flex-col gap-1 mb-3">
+                                        <span className="text-xs">{param.type} *</span>
+                                        <input
+                                            placeholder={`Valor para ${param.type}`}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
+                                            type={param.type === "image" ? "url" : "text"}
+                                            value={templateParams[key] || ""}
+                                            onChange={(e) => handleParamChange(fieldIndex, paramIndex, e.target.value)}
+                                        />
+                                    </div>
+                                )
+                            })
+                        ))
                     }
                 </div>
                 <div className="w-1/4">

@@ -14,6 +14,7 @@ interface MessageTemplate {
             type: string;
             text: string;
         }>;
+        buttons?:{type:string,text:string}[]
     }>;
 }
 

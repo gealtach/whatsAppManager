@@ -61,7 +61,7 @@ model Broadcast {
   // Información de la plantilla
   templateName     String
   templateLanguage String @default("en_US")
-  templateParams   Json? // Parámetros dinámicos de la plantilla
+  templateParams   Json
 
   status      BroadcastStatus @default(PENDING)
   scheduledAt DateTime?

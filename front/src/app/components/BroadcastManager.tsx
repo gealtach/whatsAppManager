@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from "react";
-import { Account, Broadcast, Client, MessageTemplate } from "../Types";
+import { Account, Broadcast, Client, MessageTemplate, ReqFields } from "../Types";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
@@ -18,6 +18,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
     const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | undefined>(undefined);
     const [viewTemplate, setViewTemplate] = useState<boolean>(false);
     const [selectedBroadcast, setSelectedBroadcast] = useState<Broadcast | undefined>(undefined);
+    const [reqArray, setReqArray] = useState<{ name: string, requiredFields: ReqFields[] }[]>([]);
 
     const sendBroadcast = async (broadcastId: string) => {
         try {
@@ -72,7 +73,10 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
             if (broadcastResponse.ok) setBroadcasts(broadcastAns.payload);
             else toast.error(broadcastAns.message);
 
-            if (templatesResponse.ok) setTemplates(templatesAns.payload);
+            if (templatesResponse.ok) {
+                setTemplates(templatesAns.payload.approvedTemplates);
+                setReqArray(templatesAns.payload.reqArray);
+            }
             else toast.error(templatesAns.message);
         } catch (error) {
             if (error instanceof Error) toast.error(error.message);
@@ -129,6 +133,8 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
             {isLoading && <Loading />}
             {newBroadcastModal &&
                 <NewBroadcast
+                    reqArray={reqArray}
+                    templates={templates}
                     clients={clients}
                     onClose={() => setNewBroadcastModal(false)}
                     reload={() => setAux(!aux)}

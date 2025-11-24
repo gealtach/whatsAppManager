@@ -17,7 +17,7 @@ export const getTemplates: RequestHandler = async (req, res) => {
 
         const templates = await whatsappMarketingService.getMessageTemplates(wabaId, account.apiKey);
         const approvedTemplates = templates.filter((t) => t.status === 'APPROVED');
-        const reqArray = approvedTemplates.map(t => getRequieredFields(t));
+        const reqArray = approvedTemplates.map(t => getRequiredFields(t));
 
         res.status(200).json({ message: '', ok: true, payload: { approvedTemplates, reqArray } });
         return;
@@ -46,18 +46,19 @@ interface ReqFields {
     parameters: [
         {
             type: string,
-            image: { link: string }
+            image?: { link: string }
+            sub_type?:string,
         }
     ]
 }
 
-const getRequieredFields = (template: MessageTemplate) => {
+const getRequiredFields = (template: MessageTemplate) => {
     const name = template.name;
-    const requieredFields: ReqFields[] = [];
+    const requiredFields: ReqFields[] = [];
     template.components?.map(c => {
         if (c.type === 'HEADER') {
             if (c.format === 'IMAGE') {
-                requieredFields.push({
+                requiredFields.push({
                     type: "header",
                     parameters: [
                         {
@@ -67,8 +68,8 @@ const getRequieredFields = (template: MessageTemplate) => {
                     ]
                 })
             }
-        }
+        };
     });
-    return { name, requieredFields }
+    return { name, requiredFields }
 }
 

@@ -1,7 +1,7 @@
 import { ErrorLogger } from "../utils/errorLogger";
 import { prisma } from "../lib/prisma";
 import { RequestHandler } from 'express';
-import { whatsappMarketingService } from "../services/whatsappCloudAPI";
+import { MessageTemplate, whatsappMarketingService } from "../services/whatsappCloudAPI";
 
 export const create: RequestHandler = async (req, res) => {
     try {
@@ -11,7 +11,7 @@ export const create: RequestHandler = async (req, res) => {
             scheduledAt,
             templateName,
             templateLanguage = 'pt_PT',
-            templateParams
+            template
         } = req.body;
 
         // Validaciones
@@ -49,7 +49,7 @@ export const create: RequestHandler = async (req, res) => {
             data: {
                 templateName,
                 templateLanguage,
-                templateParams: templateParams || null,
+                templateParams: template || null,
                 accountId,
                 scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
                 totalRecipients: clients.length,
@@ -192,7 +192,6 @@ export const deleteBC: RequestHandler = async (req, res) => {
 export const send: RequestHandler = async (req, res) => {
     try {
         const { id } = req.params;
-        const { template } = req.body
         if (!id) throw new Error('Faltam campos obrigatórios');
 
         const broadcast = await prisma.broadcast.findUnique({
@@ -209,6 +208,7 @@ export const send: RequestHandler = async (req, res) => {
                 },
             },
         });
+        const template=broadcast?.templateParams as unknown as MessageTemplate;
 
         if (!broadcast) throw new Error('Difussão não encontrada');
 
