@@ -6,12 +6,13 @@
 
 type ComponentType = 'header' | 'body' | 'button';
 type HeaderFormat = 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LOCATION';
-type ParameterType = 'text' | 'currency' | 'date_time' | 'image' | 'video' | 'document' | 'payload';
+type ParameterType = 'text' | 'currency' | 'date_time' | 'image' | 'video' | 'document' | 'payload' | 'coupon_code';
 type ButtonSubType = 'quick_reply' | 'url' | 'phone_number' | 'copy_code' | 'catalog' | 'otp' | 'flow';
 
 interface WhatsAppParameter {
   type: ParameterType;
   text?: string;
+  coupon_code?: string;
   image?: { link: string };
   video?: { link: string };
   document?: { link: string; filename?: string };
@@ -64,13 +65,13 @@ interface TemplateAnalysis {
   language: string;
   category: string;
   status: string;
-  
+
   // Campos que el usuario debe completar
   requiredFields: RequiredField[];
-  
+
   // Template vacío listo para llenar
   componentsTemplate: WhatsAppComponent[];
-  
+
   // Metadata útil
   metadata: {
     hasHeader: boolean;
@@ -223,7 +224,7 @@ class TemplateAnalyzer {
     const parameterTypes: string[] = [];
 
     const bodyText = component.text || '';
-    
+
     // Detectar parámetros {{1}}, {{2}}, etc.
     const paramRegex = /\{\{(\d+)\}\}/g;
     const matches = Array.from(bodyText.matchAll(paramRegex));
@@ -232,14 +233,17 @@ class TemplateAnalyzer {
       return { fields: [], template: null, parameterTypes: [] };
     }
 
+    // Solución: Convertir los matches a un tipo conocido
+    const typedMatches = matches as RegExpMatchArray[];
+
     // Por ahora, asumimos que todos son TEXT
     // Pero podrías tener lógica para detectar currency o date_time
-    matches.forEach((match, index) => {
+    typedMatches.forEach((match: RegExpMatchArray, index: number) => {
       const paramNumber = parseInt(match[1]);
-      
+
       // Detectar tipo por contexto (opcional)
       const paramType = this.detectParameterType(bodyText, paramNumber);
-      
+
       parameterTypes.push(paramType);
 
       if (paramType === 'text') {
@@ -458,8 +462,8 @@ class TemplateAnalyzer {
           index: String(index),
           parameters: [
             {
-              type: 'text',
-              text: '',
+              type: 'coupon_code',
+              coupon_code: '',
             },
           ],
         });
@@ -520,7 +524,7 @@ class TemplateAnalyzer {
       if (component.type === 'HEADER') {
         hasHeader = true;
         headerFormat = component.format;
-        
+
         const { fields, template: headerTemplate } = this.analyzeHeader(component);
         requiredFields.push(...fields);
         if (headerTemplate) componentsTemplate.push(headerTemplate);
@@ -528,14 +532,14 @@ class TemplateAnalyzer {
         const { fields, template: bodyTemplate, parameterTypes } = this.analyzeBody(component);
         bodyParameterCount = fields.length;
         bodyParameterTypes = parameterTypes;
-        
+
         requiredFields.push(...fields);
         if (bodyTemplate) componentsTemplate.push(bodyTemplate);
       } else if (component.type === 'BUTTONS') {
         const { fields, templates } = this.analyzeButtons(component);
         buttonCount = templates.length;
         buttonTypes = templates.map(t => t.sub_type!);
-        
+
         requiredFields.push(...fields);
         componentsTemplate.push(...templates);
       }

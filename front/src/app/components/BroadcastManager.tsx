@@ -1,7 +1,8 @@
+// components/BroadcastManager.tsx
 'use client';
 
 import { useCallback, useEffect, useState } from "react";
-import { Account, Broadcast, Client, MessageTemplate, ReqFields } from "../Types";
+import { Account, Broadcast, Client, MessageTemplate, TemplateAnalysis } from "../Types";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
@@ -15,30 +16,39 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [aux, setAux] = useState<boolean>(false);
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+    const [modelos, setModelos] = useState<TemplateAnalysis[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | undefined>(undefined);
     const [viewTemplate, setViewTemplate] = useState<boolean>(false);
     const [selectedBroadcast, setSelectedBroadcast] = useState<Broadcast | undefined>(undefined);
-    const [reqArray, setReqArray] = useState<{ name: string, requiredFields: ReqFields[] }[]>([]);
 
     const sendBroadcast = async (broadcastId: string) => {
         try {
             setIsLoading(true);
-            const bc = broadcasts.find(b => b.id === broadcastId);
-            const template = templates.find(t => t.name === bc?.templateName);
-            const response = await fetchClient.post(`/broadcast/send/${broadcastId}`, { template });
+            const response = await fetchClient.post(`/broadcast/send/${broadcastId}`, {});
             const ans = await response.json();
-            if (response.ok) toast.success(ans.message);
-            else toast.error(ans.message);
+
+            if (response.ok) {
+                toast.success(ans.message || 'Difusão enviada com sucesso!');
+            } else {
+                toast.error(ans.message || 'Erro ao enviar difusão');
+            }
+
             setAux(!aux);
         } catch (error) {
-            if (error instanceof Error) toast.error(error.message);
-            else toast.error('Erro desconhecido');
-        } finally { setIsLoading(false); }
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error('Erro desconhecido');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const openViewer = (id: string) => {
         const selectedBc = broadcasts.find(bc => bc.id === id);
         setSelectedBroadcast(selectedBc);
+
         if (selectedBc) {
             const selectedT = templates.find(t => t.name === selectedBc.templateName);
             setSelectedTemplate(selectedT);
@@ -55,6 +65,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
     const fetchData = useCallback(async () => {
         try {
             setIsLoading(true);
+
             const [clientResponse, broadcastResponse, templatesResponse] = await Promise.all([
                 fetchClient.get(`/client/${selectedAccount.id}`),
                 fetchClient.get(`/broadcast/${selectedAccount.id}`),
@@ -67,21 +78,37 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                 templatesResponse.json()
             ]);
 
-            if (clientResponse.ok) setClients(clientAns.payload);
-            else toast.error(clientAns.message);
-
-            if (broadcastResponse.ok) setBroadcasts(broadcastAns.payload);
-            else toast.error(broadcastAns.message);
-
-            if (templatesResponse.ok) {
-                setTemplates(templatesAns.payload.approvedTemplates);
-                setReqArray(templatesAns.payload.reqArray);
+            // Clients
+            if (clientResponse.ok) {
+                setClients(clientAns.payload);
+            } else {
+                toast.error(clientAns.message);
             }
-            else toast.error(templatesAns.message);
+
+            // Broadcasts
+            if (broadcastResponse.ok) {
+                setBroadcasts(broadcastAns.payload);
+            } else {
+                toast.error(broadcastAns.message);
+            }
+
+            // Templates y Modelos
+            if (templatesResponse.ok) {
+                console.log('Templates response:', templatesAns.payload);
+                setTemplates(templatesAns.payload.approvedTemplates);
+                setModelos(templatesAns.payload.modelos);
+            } else {
+                toast.error(templatesAns.message);
+            }
         } catch (error) {
-            if (error instanceof Error) toast.error(error.message);
-            else toast.error('Erro desconhecido');
-        } finally { setIsLoading(false); }
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error('Erro desconhecido');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     }, [selectedAccount.id]);
 
     useEffect(() => {
@@ -92,61 +119,75 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">
-                    Difussões - {selectedAccount.name}
+                    Difusões - {selectedAccount.name}
                 </h2>
                 <button
                     onClick={() => setNewBroadcastModal(true)}
                     className="bg-verde font-semibold cursor-pointer text-white px-4 py-2 rounded-2xl hover:bg-verde/80"
                 >
-                    Nova Difussão
+                    Nova Difusão
                 </button>
             </div>
+
             <div className="space-y-4">
-                {broadcasts.map((broadcast) => (
-                    <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
-                        <div className="flex justify-between items-start">
-                            <button className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
-                                onClick={() => openViewer(broadcast.id)}>
-                                <div className="mt-2 text-sm text-gray-500 space-x-5">
-                                    <span>Template: {broadcast.templateName}</span>
-                                    <span>Destinatarios: {broadcast.recipients.length}</span>
-                                    <span className="ml-4">Estado: {broadcast.status}</span>
-                                    {broadcast.sentAt && (
-                                        <span className="ml-4">
-                                            Enviado: {new Date(broadcast.sentAt).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            </button>
-                            {broadcast.status === 'PENDING' && (
+                {broadcasts.length > 0 ? (
+                    broadcasts.map((broadcast) => (
+                        <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
+                            <div className="flex justify-between items-start">
                                 <button
-                                    onClick={() => sendBroadcast(broadcast.id)}
-                                    className="bg-verde text-white px-4 py-2 rounded-2xl font-semibold cursor-pointer hover:bg-verde/90"
+                                    className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
+                                    onClick={() => openViewer(broadcast.id)}
                                 >
-                                    Enviar
+                                    <div className="mt-2 text-sm text-gray-500 space-x-5">
+                                        <span>Template: {broadcast.templateName}</span>
+                                        <span>Destinatários: {broadcast.recipients.length}</span>
+                                        <span className="ml-4">Estado: {broadcast.status}</span>
+                                        {broadcast.sentAt && (
+                                            <span className="ml-4">
+                                                Enviado: {new Date(broadcast.sentAt).toLocaleString()}
+                                            </span>
+                                        )}
+                                    </div>
                                 </button>
-                            )}
+
+                                {broadcast.status === 'PENDING' && (
+                                    <button
+                                        onClick={() => sendBroadcast(broadcast.id)}
+                                        className="bg-verde text-white px-4 py-2 rounded-2xl font-semibold cursor-pointer hover:bg-verde/90"
+                                    >
+                                        Enviar
+                                    </button>
+                                )}
+                            </div>
                         </div>
+                    ))
+                ) : (
+                    <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                        Nenhuma difusão criada ainda
                     </div>
-                ))}
+                )}
             </div>
+
             {isLoading && <Loading />}
-            {newBroadcastModal &&
+
+            {newBroadcastModal && (
                 <NewBroadcast
-                    reqArray={reqArray}
+                    modelos={modelos}
                     templates={templates}
                     clients={clients}
                     onClose={() => setNewBroadcastModal(false)}
                     reload={() => setAux(!aux)}
-                    accountId={selectedAccount.id} />
-            }
-            {
-                selectedTemplate && viewTemplate && selectedBroadcast &&
+                    accountId={selectedAccount.id}
+                />
+            )}
+
+            {selectedTemplate && viewTemplate && selectedBroadcast && (
                 <BroadcastModal
                     onClose={closeViewer}
                     template={selectedTemplate}
-                    broadcast={selectedBroadcast} />
-            }
+                    broadcast={selectedBroadcast}
+                />
+            )}
         </div>
     );
 };

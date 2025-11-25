@@ -59,7 +59,6 @@ class WhatsAppMarketingService {
                     },
                 }
             );
-
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
