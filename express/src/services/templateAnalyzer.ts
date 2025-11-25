@@ -161,14 +161,27 @@ class TemplateAnalyzer {
             type: 'url',
           },
           hint: 'URL do documento (PDF recomendado)',
-        });
+        },
+          {
+            id: 'header_document_filename',
+            componentType: 'header',
+            parameterType: 'text',
+            label: 'Nome do Documento',
+            placeholder: 'meu-documento.pdf',
+            required: true,
+            validation: {
+              type: 'text',
+              maxLength: 255,
+            },
+            hint: 'Nome personalizado para o documento',
+          });
 
         template = {
           type: 'header',
           parameters: [
             {
               type: 'document',
-              document: { link: '' },
+              document: { link: '', filename: '' },
             },
           ],
         };
@@ -238,8 +251,8 @@ class TemplateAnalyzer {
 
     // Por ahora, asumimos que todos son TEXT
     // Pero podrías tener lógica para detectar currency o date_time
-    typedMatches.forEach((match: RegExpMatchArray, index: number) => {
-      const paramNumber = parseInt(match[1]);
+    for (const [index, match] of typedMatches.entries()) {
+      const paramNumber = Number.parseInt(match[1]);
 
       // Detectar tipo por contexto (opcional)
       const paramType = this.detectParameterType(bodyText, paramNumber);
@@ -276,19 +289,18 @@ class TemplateAnalyzer {
             type: 'text',
             maxLength: 3,
           },
-        });
-
-        fields.push({
-          id: `body_${index}_currency_amount`,
-          componentType: 'body',
-          parameterType: 'currency',
-          label: `Moeda ${paramNumber} - Valor`,
-          placeholder: '100.99',
-          required: true,
-          validation: {
-            type: 'number',
-          },
-        });
+        },
+          {
+            id: `body_${index}_currency_amount`,
+            componentType: 'body',
+            parameterType: 'currency',
+            label: `Moeda ${paramNumber} - Valor`,
+            placeholder: '100.99',
+            required: true,
+            validation: {
+              type: 'number',
+            },
+          });
 
         parameters.push({
           type: 'currency',
@@ -318,7 +330,7 @@ class TemplateAnalyzer {
           },
         });
       }
-    });
+    };
 
     const template: WhatsAppComponent = {
       type: 'body',
@@ -344,8 +356,8 @@ class TemplateAnalyzer {
 
     // Detectar currency
     if (
-      /(\$|€|£|price|preço|valor|custo|total)/i.test(contextBefore) ||
-      /(\$|€|£)/i.test(contextAfter)
+      /([$€£]|price|preço|valor|custo|total)/i.test(contextBefore) ||
+      /[$€£]/i.test(contextAfter)
     ) {
       return 'currency';
     }
@@ -373,7 +385,7 @@ class TemplateAnalyzer {
 
     const buttons = component.buttons || [];
 
-    buttons.forEach((button: any, index: number) => {
+    for (const [index, button] of buttons.entries()) {
       const buttonType = button.type.toLowerCase() as ButtonSubType;
 
       // QUICK_REPLY puede tener payload opcional
@@ -499,7 +511,7 @@ class TemplateAnalyzer {
           ],
         });
       }
-    });
+    };
 
     return { fields, templates };
   }
@@ -520,7 +532,7 @@ class TemplateAnalyzer {
 
     const components = template.components || [];
 
-    components.forEach((component: any) => {
+    for (const component of components) {
       if (component.type === 'HEADER') {
         hasHeader = true;
         headerFormat = component.format;
@@ -544,7 +556,7 @@ class TemplateAnalyzer {
         componentsTemplate.push(...templates);
       }
       // FOOTER no requiere parámetros
-    });
+    };
 
     return {
       name: template.name,

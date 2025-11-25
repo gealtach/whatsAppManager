@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import Loading from "./Loading";
 import NewBroadcast from "./NewBroadcast";
 import BroadcastModal from "./BroadcastModal";
+import Pagination from "./Pagination";
 
 const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => {
     const [clients, setClients] = useState<Client[]>([]);
@@ -128,45 +129,67 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                     Nova Difusão
                 </button>
             </div>
-
-            <div className="space-y-4">
-                {broadcasts.length > 0 ? (
-                    broadcasts.map((broadcast) => (
-                        <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
-                            <div className="flex justify-between items-start">
-                                <button
-                                    className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
-                                    onClick={() => openViewer(broadcast.id)}
-                                >
-                                    <div className="mt-2 text-sm text-gray-500 space-x-5">
-                                        <span>Template: {broadcast.templateName}</span>
-                                        <span>Destinatários: {broadcast.recipients.length}</span>
-                                        <span className="ml-4">Estado: {broadcast.status}</span>
-                                        {broadcast.sentAt && (
-                                            <span className="ml-4">
-                                                Enviado: {new Date(broadcast.sentAt).toLocaleString()}
-                                            </span>
-                                        )}
-                                    </div>
-                                </button>
-
-                                {broadcast.status === 'PENDING' && (
-                                    <button
-                                        onClick={() => sendBroadcast(broadcast.id)}
-                                        className="bg-verde text-white px-4 py-2 rounded-2xl font-semibold cursor-pointer hover:bg-verde/90"
-                                    >
-                                        Enviar
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-                        Nenhuma difusão criada ainda
+            <Pagination
+                data={broadcasts}
+                filterFields={['templateName','createdAt','sentAt']}
+                itemsPerPage={5}>
+                {({
+                    currentItems,
+                    PaginationInfo, PaginationControls,
+                    BottomPaginationControls,
+                    FilterComponent
+                }) => (
+                    <>
+                    <div className="my-3">
+                        {FilterComponent}
                     </div>
+                        <div className="flex justify-between items-center p-2 bg-verde">
+                            {PaginationInfo}
+                            {PaginationControls}
+                        </div>
+                        <div className="space-y-4">
+                            {currentItems.length > 0 ? (
+                                currentItems.map((broadcast) => (
+                                    <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
+                                        <div className="flex justify-between items-start">
+                                            <button
+                                                className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
+                                                onClick={() => openViewer(broadcast.id)}
+                                            >
+                                                <div className="mt-2 text-sm text-gray-500 space-x-5">
+                                                    <span>Template: {broadcast.templateName}</span>
+                                                    <span>Destinatários: {broadcast.recipients.length}</span>
+                                                    <span className="ml-4">Estado: {broadcast.status}</span>
+                                                    {broadcast.sentAt && (
+                                                        <span className="ml-4">
+                                                            Enviado: {new Date(broadcast.sentAt).toLocaleString()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </button>
+
+                                            {broadcast.status === 'PENDING' && (
+                                                <button
+                                                    onClick={() => sendBroadcast(broadcast.id)}
+                                                    className="bg-verde text-white px-4 py-2 rounded-2xl font-semibold cursor-pointer hover:bg-verde/90"
+                                                >
+                                                    Enviar
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                                    Nenhuma difusão criada ainda
+                                </div>
+                            )}
+                        </div>
+                        {BottomPaginationControls}
+                    </>
                 )}
-            </div>
+            </Pagination>
+
 
             {isLoading && <Loading />}
 

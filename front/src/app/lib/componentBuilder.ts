@@ -9,15 +9,28 @@ interface UserInputValues {
   [key: string]: string | number;
 }
 
+// Interfaz para validación
+export interface FieldValidation {
+  type?: 'url' | 'email' | 'phone' | 'number';
+  maxLength?: number;
+  pattern?: string;
+  min?: number;
+  max?: number;
+}
+
+// Interfaz completa de RequiredField
 interface RequiredField {
   id: string;
   componentType: 'header' | 'body' | 'button';
   componentIndex?: number;
   parameterType: string;
   subType?: string;
+  required?: boolean;
+  label?: string;
+  validation?: FieldValidation;
 }
 
-interface WhatsAppComponent {
+export interface WhatsAppComponent {
   type: string;
   sub_type?: string;
   index?: string;
@@ -26,7 +39,7 @@ interface WhatsAppComponent {
     text?: string;
     image?: { link: string };
     video?: { link: string };
-    document?: { link: string };
+    document?: { link: string, filename?: string };
     currency?: {
       fallback_value: string;
       code: string;
@@ -57,8 +70,7 @@ export class ComponentBuilder {
     componentsTemplate: WhatsAppComponent[]
   ): WhatsAppComponent[] {
     // Clonar template
-    const components = JSON.parse(JSON.stringify(componentsTemplate)) as WhatsAppComponent[];
-
+    const components = structuredClone(componentsTemplate);
     // Rellenar cada componente
     for (const component of components) {
       if (component.type === 'header') {
@@ -97,26 +109,45 @@ export class ComponentBuilder {
     requiredFields: RequiredField[],
     userValues: UserInputValues
   ): void {
-    const headerField = requiredFields.find(
-      f => f.componentType === 'header'
-    );
+    const headerFields = requiredFields.filter(f => f.componentType === 'header');
 
-    if (!headerField) return;
-
-    const value = userValues[headerField.id];
-    if (!value) return;
+    if (headerFields.length === 0) return;
 
     const param = component.parameters[0];
     if (!param) return;
 
-    if (param.type === 'image' && param.image) {
-      param.image.link = String(value);
-    } else if (param.type === 'video' && param.video) {
-      param.video.link = String(value);
-    } else if (param.type === 'document' && param.document) {
-      param.document.link = String(value);
-    } else if (param.type === 'text') {
-      param.text = String(value);
+    // Para documentos, buscar tanto la URL como el filename
+    if (param.type === 'document' && param.document) {
+      const urlField = headerFields.find(f => f.id === 'header_document');
+      const filenameField = headerFields.find(f => f.id === 'header_document_filename');
+
+      if (urlField) {
+        const urlValue = userValues[urlField.id];
+        if (urlValue) {
+          param.document.link = String(urlValue);
+        }
+      }
+
+      if (filenameField) {
+        const filenameValue = userValues[filenameField.id];
+        if (filenameValue && String(filenameValue).trim() !== '') {
+          param.document.filename = String(filenameValue);
+        }
+      }
+    } else {
+      // Para otros tipos de header (imagen, video, texto)
+      const field = headerFields[0];
+      const value = userValues[field.id];
+
+      if (!value) return;
+
+      if (param.type === 'image' && param.image) {
+        param.image.link = String(value);
+      } else if (param.type === 'video' && param.video) {
+        param.video.link = String(value);
+      } else if (param.type === 'text') {
+        param.text = String(value);
+      }
     }
   }
 
@@ -131,7 +162,7 @@ export class ComponentBuilder {
     const bodyFields = requiredFields.filter(
       f => f.componentType === 'body'
     );
-    component.parameters.forEach((param, index) => {
+    for (const [index, param] of component.parameters.entries()) {
       if (param.type === 'text') {
         const field = bodyFields.find(f => f.id === `body_${index}`);
         if (field) {
@@ -173,7 +204,7 @@ export class ComponentBuilder {
           }
         }
       }
-    });
+    }
   }
 
   /**
@@ -203,7 +234,7 @@ export class ComponentBuilder {
       if (param.type === 'payload') {
         param.payload = String(value);
       }
-    } else if (component.sub_type === 'url') {
+    } else if (component.sub_type === 'url' || component.sub_type === 'otp') {
       if (param.type === 'text') {
         param.text = String(value);
       }
@@ -211,10 +242,6 @@ export class ComponentBuilder {
       // Cambio específico para copy_code
       if (param.type === 'coupon_code') {
         param.coupon_code = String(value);
-      }
-    } else if (component.sub_type === 'otp') {
-      if (param.type === 'text') {
-        param.text = String(value);
       }
     }
   }
@@ -228,7 +255,7 @@ export class ComponentBuilder {
   ): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    requiredFields.forEach(field => {
+    for (const field of requiredFields) {
       if (field.required) {
         const value = userValues[field.id];
 
@@ -262,7 +289,7 @@ export class ComponentBuilder {
           }
         }
       }
-    });
+    }
 
     return {
       valid: errors.length === 0,

@@ -8,7 +8,7 @@ import { Client, MessageTemplate } from "../Types";
 import { toast } from "react-toastify";
 import { fetchClient } from "../lib/fetchClient";
 import TemplateViewer from "./TemplateViewer";
-import ComponentBuilder from "../lib/componentBuilder";
+import ComponentBuilder, { FieldValidation, WhatsAppComponent } from "../lib/componentBuilder";
 
 type NewBroadcastForm = {
     templateName: string;
@@ -25,7 +25,7 @@ interface RequiredField {
     label: string;
     placeholder: string;
     required: boolean;
-    validation?: any;
+    validation?: FieldValidation;
     hint?: string;
 }
 
@@ -33,8 +33,14 @@ interface TemplateAnalysis {
     name: string;
     language: string;
     requiredFields: RequiredField[];
-    componentsTemplate: any[];
-    metadata: any;
+    componentsTemplate: WhatsAppComponent[];
+    metadata: {
+        category: string;
+        hasHeader: boolean;
+        headerFormat?: string;
+        bodyParameterCount: number;
+        buttonCount: number
+    };
 }
 
 interface UserInputValues {
@@ -123,7 +129,6 @@ const NewBroadcast = ({
                 selectedModel.requiredFields,
                 userInputValues,
                 selectedModel.componentsTemplate,
-                selectedModel.metadata.parameterFormat
             );
 
             console.log('Components construidos:', components);
@@ -379,6 +384,7 @@ const NewBroadcast = ({
                                     <p><strong>Botões:</strong> {selectedModel.metadata.buttonCount}</p>
                                 )}
                             </div>
+
                         </div>
                     )}
                 </div>
