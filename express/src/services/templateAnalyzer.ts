@@ -35,9 +35,9 @@ interface WhatsAppParameter {
 }
 
 interface RequiredField {
-  id: string; // header_image, body_0, button_0, etc.
+  id: string;
   componentType: ComponentType;
-  componentIndex?: number; // Para buttons
+  componentIndex?: number;
   parameterType: ParameterType;
   subType?: ButtonSubType;
   label: string;
@@ -49,7 +49,6 @@ interface RequiredField {
     maxLength?: number;
     pattern?: string;
   };
-  // Para mostrar info adicional en el frontend
   hint?: string;
 }
 
@@ -65,19 +64,13 @@ interface TemplateAnalysis {
   language: string;
   category: string;
   status: string;
-
-  // Campos que el usuario debe completar
   requiredFields: RequiredField[];
-
-  // Template vacío listo para llenar
   componentsTemplate: WhatsAppComponent[];
-
-  // Metadata útil
   metadata: {
     hasHeader: boolean;
     headerFormat?: HeaderFormat;
     bodyParameterCount: number;
-    bodyParameterTypes: string[]; // ['text', 'currency', 'date_time']
+    bodyParameterTypes: string[];
     buttonCount: number;
     buttonTypes: ButtonSubType[];
     totalFields: number;
@@ -86,16 +79,33 @@ interface TemplateAnalysis {
 
 class TemplateAnalyzer {
   /**
+   * Type guard para verificar si un objeto tiene una propiedad
+   */
+  private hasProperty<T extends object, K extends PropertyKey>(
+    obj: T,
+    key: K
+  ): obj is T & Record<K, unknown> {
+    return key in obj;
+  }
+
+  /**
+   * Obtiene el valor de una propiedad de forma segura
+   */
+  private getProperty<T>(obj: Record<string, unknown>, key: string, defaultValue: T): T {
+    return (obj[key] as T) ?? defaultValue;
+  }
+
+  /**
    * Analiza el HEADER y genera los campos requeridos
    */
-  private analyzeHeader(component: any): {
+  private analyzeHeader(component: Record<string, unknown>): {
     fields: RequiredField[];
     template: WhatsAppComponent | null;
   } {
     const fields: RequiredField[] = [];
     let template: WhatsAppComponent | null = null;
 
-    const format = component.format as HeaderFormat;
+    const format = this.getProperty(component, 'format', '') as HeaderFormat;
 
     switch (format) {
       case 'IMAGE':
@@ -150,18 +160,19 @@ class TemplateAnalyzer {
         break;
 
       case 'DOCUMENT':
-        fields.push({
-          id: 'header_document',
-          componentType: 'header',
-          parameterType: 'document',
-          label: 'Documento do Cabeçalho',
-          placeholder: 'https://exemplo.com/documento.pdf',
-          required: true,
-          validation: {
-            type: 'url',
+        fields.push(
+          {
+            id: 'header_document',
+            componentType: 'header',
+            parameterType: 'document',
+            label: 'Documento do Cabeçalho',
+            placeholder: 'https://exemplo.com/documento.pdf',
+            required: true,
+            validation: {
+              type: 'url',
+            },
+            hint: 'URL do documento (PDF recomendado)',
           },
-          hint: 'URL do documento (PDF recomendado)',
-        },
           {
             id: 'header_document_filename',
             componentType: 'header',
@@ -174,7 +185,8 @@ class TemplateAnalyzer {
               maxLength: 255,
             },
             hint: 'Nome personalizado para o documento',
-          });
+          }
+        );
 
         template = {
           type: 'header',
@@ -213,7 +225,6 @@ class TemplateAnalyzer {
         break;
 
       case 'LOCATION':
-        // Location no requiere parámetros del usuario
         template = {
           type: 'header',
           parameters: [],
@@ -227,7 +238,7 @@ class TemplateAnalyzer {
   /**
    * Analiza el BODY y detecta tipos de parámetros
    */
-  private analyzeBody(component: any): {
+  private analyzeBody(component: Record<string, unknown>): {
     fields: RequiredField[];
     template: WhatsAppComponent | null;
     parameterTypes: string[];
@@ -236,7 +247,7 @@ class TemplateAnalyzer {
     const parameters: WhatsAppParameter[] = [];
     const parameterTypes: string[] = [];
 
-    const bodyText = component.text || '';
+    const bodyText = this.getProperty(component, 'text', '');
 
     // Detectar parámetros {{1}}, {{2}}, etc.
     const paramRegex = /\{\{(\d+)\}\}/g;
@@ -246,17 +257,11 @@ class TemplateAnalyzer {
       return { fields: [], template: null, parameterTypes: [] };
     }
 
-    // Solución: Convertir los matches a un tipo conocido
-    const typedMatches = matches as RegExpMatchArray[];
+    for (const [index, match] of matches.entries()) {
+      const paramNumber = Number.parseInt(match[1], 10);
 
-    // Por ahora, asumimos que todos son TEXT
-    // Pero podrías tener lógica para detectar currency o date_time
-    for (const [index, match] of typedMatches.entries()) {
-      const paramNumber = Number.parseInt(match[1]);
-
-      // Detectar tipo por contexto (opcional)
+      // Detectar tipo por contexto
       const paramType = this.detectParameterType(bodyText, paramNumber);
-
       parameterTypes.push(paramType);
 
       if (paramType === 'text') {
@@ -278,18 +283,19 @@ class TemplateAnalyzer {
           text: '',
         });
       } else if (paramType === 'currency') {
-        fields.push({
-          id: `body_${index}_currency_code`,
-          componentType: 'body',
-          parameterType: 'currency',
-          label: `Moeda ${paramNumber} - Código`,
-          placeholder: 'USD',
-          required: true,
-          validation: {
-            type: 'text',
-            maxLength: 3,
+        fields.push(
+          {
+            id: `body_${index}_currency_code`,
+            componentType: 'body',
+            parameterType: 'currency',
+            label: `Moeda ${paramNumber} - Código`,
+            placeholder: 'USD',
+            required: true,
+            validation: {
+              type: 'text',
+              maxLength: 3,
+            },
           },
-        },
           {
             id: `body_${index}_currency_amount`,
             componentType: 'body',
@@ -300,7 +306,8 @@ class TemplateAnalyzer {
             validation: {
               type: 'number',
             },
-          });
+          }
+        );
 
         parameters.push({
           type: 'currency',
@@ -330,7 +337,7 @@ class TemplateAnalyzer {
           },
         });
       }
-    };
+    }
 
     const template: WhatsAppComponent = {
       type: 'body',
@@ -350,9 +357,11 @@ class TemplateAnalyzer {
 
     if (paramIndex === -1) return 'text';
 
-    // Buscar contexto alrededor del parámetro
     const contextBefore = lowercaseText.substring(Math.max(0, paramIndex - 20), paramIndex);
-    const contextAfter = lowercaseText.substring(paramIndex, Math.min(lowercaseText.length, paramIndex + 40));
+    const contextAfter = lowercaseText.substring(
+      paramIndex,
+      Math.min(lowercaseText.length, paramIndex + 40)
+    );
 
     // Detectar currency
     if (
@@ -376,19 +385,21 @@ class TemplateAnalyzer {
   /**
    * Analiza BUTTONS
    */
-  private analyzeButtons(component: any): {
+  private analyzeButtons(component: Record<string, unknown>): {
     fields: RequiredField[];
     templates: WhatsAppComponent[];
   } {
     const fields: RequiredField[] = [];
     const templates: WhatsAppComponent[] = [];
 
-    const buttons = component.buttons || [];
+    const buttons = this.getProperty<unknown[]>(component, 'buttons', []);
 
-    for (const [index, button] of buttons.entries()) {
-      const buttonType = button.type.toLowerCase() as ButtonSubType;
+    for (const [index, buttonData] of buttons.entries()) {
+      const button = buttonData as Record<string, unknown>;
+      const buttonTypeRaw = this.getProperty(button, 'type', '');
+      const buttonType = String(buttonTypeRaw).toLowerCase() as ButtonSubType;
+      const buttonText = this.getProperty(button, 'text', 'Botão');
 
-      // QUICK_REPLY puede tener payload opcional
       if (buttonType === 'quick_reply') {
         fields.push({
           id: `button_${index}_payload`,
@@ -396,7 +407,7 @@ class TemplateAnalyzer {
           componentIndex: index,
           parameterType: 'payload',
           subType: buttonType,
-          label: `Botão ${index + 1}: ${button.text} (Payload)`,
+          label: `Botão ${index + 1}: ${buttonText} (Payload)`,
           placeholder: 'payload-opcional',
           required: false,
           validation: {
@@ -419,22 +430,22 @@ class TemplateAnalyzer {
         });
       }
 
-      // URL button requiere URL dinámica si tiene {{1}}
-      if (buttonType === 'url' && button.url?.includes('{{1}}')) {
+      const buttonUrl = this.getProperty(button, 'url', '');
+      if (buttonType === 'url' && buttonUrl.includes('{{1}}')) {
         fields.push({
           id: `button_${index}_url_suffix`,
           componentType: 'button',
           componentIndex: index,
           parameterType: 'text',
           subType: buttonType,
-          label: `Botão ${index + 1}: ${button.text} (URL)`,
+          label: `Botão ${index + 1}: ${buttonText} (URL)`,
           placeholder: 'sufixo-da-url',
           required: true,
           validation: {
             type: 'text',
             maxLength: 2000,
           },
-          hint: `URL base: ${button.url.replace('{{1}}', '')}`,
+          hint: `URL base: ${buttonUrl.replace('{{1}}', '')}`,
         });
 
         templates.push({
@@ -450,7 +461,6 @@ class TemplateAnalyzer {
         });
       }
 
-      // COPY_CODE requiere el código
       if (buttonType === 'copy_code') {
         fields.push({
           id: `button_${index}_copy_code`,
@@ -458,7 +468,7 @@ class TemplateAnalyzer {
           componentIndex: index,
           parameterType: 'text',
           subType: buttonType,
-          label: `Botão ${index + 1}: ${button.text} (Código)`,
+          label: `Botão ${index + 1}: ${buttonText} (Código)`,
           placeholder: 'ABC123',
           required: true,
           validation: {
@@ -481,7 +491,6 @@ class TemplateAnalyzer {
         });
       }
 
-      // OTP requiere código OTP
       if (buttonType === 'otp') {
         fields.push({
           id: `button_${index}_otp`,
@@ -489,7 +498,7 @@ class TemplateAnalyzer {
           componentIndex: index,
           parameterType: 'text',
           subType: buttonType,
-          label: `Botão ${index + 1}: ${button.text} (OTP)`,
+          label: `Botão ${index + 1}: ${buttonText} (OTP)`,
           placeholder: '123456',
           required: true,
           validation: {
@@ -511,7 +520,7 @@ class TemplateAnalyzer {
           ],
         });
       }
-    };
+    }
 
     return { fields, templates };
   }
@@ -519,7 +528,7 @@ class TemplateAnalyzer {
   /**
    * Analiza un template completo
    */
-  analyzeTemplate(template: any): TemplateAnalysis {
+  analyzeTemplate(templateData: Record<string, unknown>): TemplateAnalysis {
     const requiredFields: RequiredField[] = [];
     const componentsTemplate: WhatsAppComponent[] = [];
 
@@ -530,39 +539,43 @@ class TemplateAnalyzer {
     let buttonCount = 0;
     let buttonTypes: ButtonSubType[] = [];
 
-    const components = template.components || [];
+    const components = this.getProperty<unknown[]>(templateData, 'components', []);
 
-    for (const component of components) {
-      if (component.type === 'HEADER') {
+    for (const componentData of components) {
+      const component = componentData as Record<string, unknown>;
+      const componentType = typeof component.type === 'string'
+        ? component.type
+        : '';
+
+      if (componentType === 'HEADER') {
         hasHeader = true;
-        headerFormat = component.format;
+        headerFormat = this.getProperty(component, 'format', '') as HeaderFormat;
 
         const { fields, template: headerTemplate } = this.analyzeHeader(component);
         requiredFields.push(...fields);
         if (headerTemplate) componentsTemplate.push(headerTemplate);
-      } else if (component.type === 'BODY') {
+      } else if (componentType === 'BODY') {
         const { fields, template: bodyTemplate, parameterTypes } = this.analyzeBody(component);
         bodyParameterCount = fields.length;
         bodyParameterTypes = parameterTypes;
 
         requiredFields.push(...fields);
         if (bodyTemplate) componentsTemplate.push(bodyTemplate);
-      } else if (component.type === 'BUTTONS') {
+      } else if (componentType === 'BUTTONS') {
         const { fields, templates } = this.analyzeButtons(component);
         buttonCount = templates.length;
-        buttonTypes = templates.map(t => t.sub_type!);
+        buttonTypes = templates.map((t) => t.sub_type!);
 
         requiredFields.push(...fields);
         componentsTemplate.push(...templates);
       }
-      // FOOTER no requiere parámetros
-    };
+    }
 
     return {
-      name: template.name,
-      language: template.language,
-      category: template.category,
-      status: template.status,
+      name: this.getProperty(templateData, 'name', ''),
+      language: this.getProperty(templateData, 'language', ''),
+      category: this.getProperty(templateData, 'category', ''),
+      status: this.getProperty(templateData, 'status', ''),
       requiredFields,
       componentsTemplate,
       metadata: {
@@ -580,10 +593,12 @@ class TemplateAnalyzer {
   /**
    * Procesa múltiples templates
    */
-  analyzeTemplates(templates: any[]): TemplateAnalysis[] {
-    return templates.map(template => this.analyzeTemplate(template));
+  analyzeTemplates(templates: unknown[]): TemplateAnalysis[] {
+    return templates.map((template) =>
+      this.analyzeTemplate(template as Record<string, unknown>)
+    );
   }
 }
 
 export const templateAnalyzer = new TemplateAnalyzer();
-export { TemplateAnalysis, RequiredField, WhatsAppComponent, WhatsAppParameter };
+export type { TemplateAnalysis, RequiredField, WhatsAppComponent, WhatsAppParameter };
