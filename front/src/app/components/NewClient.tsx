@@ -12,7 +12,7 @@ type NewClientForm = {
     email?: string;
     notes?: string;
     accountId: string
-}
+};
 
 const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload: () => void, accountId: string }) => {
     const { register, handleSubmit, formState: { errors } } = useForm<NewClientForm>();

@@ -16,7 +16,7 @@ type NewBroadcastForm = {
     scheduledAt: Date;
 }
 
-interface RequiredField {
+export interface RequiredField {
     id: string;
     componentType: 'header' | 'body' | 'button';
     componentIndex?: number;
@@ -29,7 +29,7 @@ interface RequiredField {
     hint?: string;
 }
 
-interface TemplateAnalysis {
+export interface TemplateAnalysis {
     name: string;
     language: string;
     requiredFields: RequiredField[];
@@ -313,41 +313,43 @@ const NewBroadcast = ({
                     <h3 className="font-semibold">Parâmetros do Template</h3>
 
                     {selectedModel && selectedModel.requiredFields.length > 0 ? (
-                        selectedModel.requiredFields.map((field) => (
-                            <div key={field.id} className="flex flex-col gap-1">
-                                <label className="text-sm font-medium">
-                                    {field.label}
-                                    {field.required && <span className="text-red-500"> *</span>}
-                                </label>
+                        selectedModel.requiredFields.map((field) => {
+                            const renderInputField = () => {
+                                if (field.parameterType === 'date_time') {
+                                    return (
+                                        <input
+                                            type="datetime-local"
+                                            placeholder={field.placeholder}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
+                                            value={userInputValues[field.id] || ''}
+                                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                                            required={field.required}
+                                        />
+                                    );
+                                }
 
-                                {/* Hint si existe */}
-                                {field.hint && (
-                                    <p className="text-xs text-gray-500 mb-1">{field.hint}</p>
-                                )}
+                                if (field.parameterType === 'currency') {
+                                    return (
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder={field.placeholder}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
+                                            value={userInputValues[field.id] || ''}
+                                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                                            required={field.required}
+                                        />
+                                    );
+                                }
 
-                                {/* Input según el tipo */}
-                                {field.parameterType === 'date_time' ? (
+                                // Para image, video, document usa tipo url, para otros texto
+                                const inputType = ['image', 'video', 'document'].includes(field.parameterType)
+                                    ? 'url'
+                                    : 'text';
+
+                                return (
                                     <input
-                                        type="datetime-local"
-                                        placeholder={field.placeholder}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
-                                        value={userInputValues[field.id] || ''}
-                                        onChange={(e) => handleInputChange(field.id, e.target.value)}
-                                        required={field.required}
-                                    />
-                                ) : field.parameterType === 'currency' ? (
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder={field.placeholder}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
-                                        value={userInputValues[field.id] || ''}
-                                        onChange={(e) => handleInputChange(field.id, e.target.value)}
-                                        required={field.required}
-                                    />
-                                ) : (
-                                    <input
-                                        type={field.parameterType === 'image' || field.parameterType === 'video' || field.parameterType === 'document' ? 'url' : 'text'}
+                                        type={inputType}
                                         placeholder={field.placeholder}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent"
                                         value={userInputValues[field.id] || ''}
@@ -355,9 +357,26 @@ const NewBroadcast = ({
                                         required={field.required}
                                         maxLength={field.validation?.maxLength}
                                     />
-                                )}
-                            </div>
-                        ))
+                                );
+                            };
+
+                            return (
+                                <div key={field.id} className="flex flex-col gap-1">
+                                    <label className="text-sm font-medium">
+                                        {field.label}
+                                        {field.required && <span className="text-red-500"> *</span>}
+                                    </label>
+
+                                    {/* Hint si existe */}
+                                    {field.hint && (
+                                        <p className="text-xs text-gray-500 mb-1">{field.hint}</p>
+                                    )}
+
+                                    {/* Renderizar el input correspondiente */}
+                                    {renderInputField()}
+                                </div>
+                            );
+                        })
                     ) : (
                         <p className="text-sm text-gray-500">
                             {selectedModel ? 'Este template não requer parâmetros' : 'Selecione um template'}

@@ -2,11 +2,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from "react";
-import { Account, Broadcast, Client, MessageTemplate, TemplateAnalysis } from "../Types";
+import { Account, Broadcast, Client, MessageTemplate } from "../Types";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
-import NewBroadcast from "./NewBroadcast";
+import NewBroadcast, { TemplateAnalysis } from "./NewBroadcast";
 import BroadcastModal from "./BroadcastModal";
 import Pagination from "./Pagination";
 
@@ -193,7 +193,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
 
             {isLoading && <Loading />}
 
-            {newBroadcastModal && (
+            {newBroadcastModal &&  (
                 <NewBroadcast
                     modelos={modelos}
                     templates={templates}
