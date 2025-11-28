@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '../generated/prisma/client';
+import { encryptionExtension } from "../middleware/encryptationMiddleware";
 
 const adapter = new PrismaMariaDb({
   host: process.env.DATABASE_HOST,
@@ -9,6 +10,8 @@ const adapter = new PrismaMariaDb({
   database: process.env.DATABASE_NAME,
   connectionLimit: 5
 });
-const prisma = new PrismaClient({ adapter });
 
-export { prisma }
+const basePrisma = new PrismaClient({ adapter });
+
+// Aplicar extensión de encriptación
+export const prisma = basePrisma.$extends(encryptionExtension);
