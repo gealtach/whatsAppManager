@@ -1,37 +1,15 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { fetchClient } from "../lib/fetchClient";
-import { toast } from "react-toastify";
-import Loading from "./Loading";
+import { useState } from "react";
 import NewAccountModal from "./NewAccountModal";
 import { Account } from "../Types";
 
-const AccountManager = ({ onAccountSelect }: { onAccountSelect: (a: Account) => void }) => {
-    const [accounts, setAccounts] = useState<Account[]>([]);
-    const [aux, setAux] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+const AccountManager = ({ onAccountSelect, accounts, reload }: { onAccountSelect: (a: Account) => void, accounts: Account[], reload: () => void }) => {
     const [newAccountModal, setNewAccountModal] = useState<boolean>(false);
 
     const handleClick = (account: Account) => {
         onAccountSelect(account);
-    }
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetchClient.get('/account');
-                const ans = await response.json();
-                if (response.ok) setAccounts(ans.payload);
-                else toast.error(ans.message);
-            } catch (error) {
-                if (error instanceof Error) toast.error(error.message);
-                else toast.error('Erro desconhecido');
-            } finally { setIsLoading(false); }
-        };
-        fetchData();
-    }, [aux]);
+    };
 
     return (
         <div>
@@ -50,7 +28,7 @@ const AccountManager = ({ onAccountSelect }: { onAccountSelect: (a: Account) => 
                     <button
                         key={account.id}
                         onClick={() => handleClick(account)}
-                        className="bg-white rounded-2xl shadow p-6 cursor-pointer hover:shadow-md text-left"
+                        className="bg-white rounded-2xl shadow p-6 cursor-pointer hover:shadow-md text-left relative overflow-hidden transition-all duration-300 before:absolute before:inset-0 before:bg-verde/30 before:transform before:-translate-x-full before:transition-transform before:duration-300 before:ease-out hover:before:translate-x-0"
                     >
                         <h3 className="font-bold text-lg">{account.name}</h3>
                         <p className="text-gray-600">{account.phone}</p>
@@ -62,7 +40,7 @@ const AccountManager = ({ onAccountSelect }: { onAccountSelect: (a: Account) => 
                 ))}
             </div>
 
-            {accounts.length === 0 && !isLoading && (
+            {accounts.length === 0 && (
                 <div className="text-center py-8">
                     <p className="text-gray-500">No hay cuentas registradas</p>
                 </div>
@@ -71,10 +49,9 @@ const AccountManager = ({ onAccountSelect }: { onAccountSelect: (a: Account) => 
             {newAccountModal && (
                 <NewAccountModal
                     onClose={() => setNewAccountModal(false)}
-                    reload={() => setAux(!aux)}
+                    reload={reload}
                 />
             )}
-            {isLoading && <Loading />}
         </div>
     );
 };

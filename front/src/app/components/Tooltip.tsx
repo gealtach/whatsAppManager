@@ -39,7 +39,7 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'right' })
 
   return (
     <div
-      className="relative"
+      className="relative flex"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
       onMouseMove={handleMouseMove}

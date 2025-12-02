@@ -34,8 +34,6 @@ const Login = () => {
         } catch (error) {
             if (error instanceof Error) toast.error(error.message);
             else toast.error('Erro desconhecido');
-        } finally {
-            setLoading(false);
         }
     });
 

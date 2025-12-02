@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, deleteAccount, getAll, verify } from "../controllers/account.controller";
+import { create, deleteAccount, getAll, update, verify } from "../controllers/account.controller";
 import { authenticateToken } from "../middleware/authMiddleware";
 import { verifyCSRF } from "../middleware/csrfMiddleware";
 
@@ -9,5 +9,6 @@ router.get('/', authenticateToken, getAll);
 router.post('/', authenticateToken, verifyCSRF, create);
 router.delete('/id', authenticateToken, verifyCSRF, deleteAccount);
 router.get('/:id/verify', authenticateToken, verify);
+router.put("/", update);
 
 export default router;

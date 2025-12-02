@@ -5,6 +5,8 @@ export interface Account {
     id: string
     name: string
     phone: string
+    phoneId: string
+    wabaId: string
     apiKey: string
     isActive: boolean
     createdAt: Date
