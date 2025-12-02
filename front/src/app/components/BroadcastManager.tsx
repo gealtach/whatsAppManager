@@ -150,7 +150,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                         <div className="space-y-4">
                             {currentItems.length > 0 ? (
                                 currentItems.map((broadcast) => (
-                                    <div key={broadcast.id} className="bg-white rounded-lg shadow p-6">
+                                    <div key={broadcast.id} className="bg-background rounded-lg shadow p-6">
                                         <div className="flex justify-between items-start">
                                             <button
                                                 className="w-full text-start hover:bg-slate-50 h-10 cursor-pointer"
@@ -180,7 +180,7 @@ const BroadcastManager = ({ selectedAccount }: { selectedAccount: Account }) => 
                                     </div>
                                 ))
                             ) : (
-                                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                                <div className="bg-background rounded-lg shadow p-6 text-center text-gray-500">
                                     Nenhuma difusão criada ainda
                                 </div>
                             )}

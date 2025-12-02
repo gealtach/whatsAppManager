@@ -59,9 +59,9 @@ const TemplateViewer = ({ template }: { template: MessageTemplate }) => {
                             <video
                                 src={header.example?.header_handle?.[0]}
                                 controls
-                                className="max-w-full h-auto rounded-lg"
+                                className="max-w-full h-auto max-h-[250px] rounded-lg"
                             >
-                                <track kind="captions" src="" srcLang="en" label="English" />
+                                <track kind="captions" src={header.example?.header_handle?.[0]} srcLang="en" label="English" />
                             </video>
                         </div>
                     </div>
@@ -192,7 +192,7 @@ const TemplateViewer = ({ template }: { template: MessageTemplate }) => {
     return (
         <div className="max-w-md mx-auto">
             {/* Vista previa del mensaje */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-background rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 {template.components?.map((component, index) => renderComponent(component, index))}
 
                 {/* Mensaje si no hay componentes */}

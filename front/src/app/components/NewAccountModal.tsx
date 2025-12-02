@@ -7,6 +7,7 @@ import { User } from "../Types";
 import { toast } from "react-toastify";
 import { FaExclamationCircle, FaSearch } from "react-icons/fa";
 import Tooltip from "./Tooltip";
+import Modal from "./Modal";
 
 type NewAcocuntForm = {
     name: string;
@@ -73,10 +74,10 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
     };
 
     return (
-        <div className="fixed inset-0 bg-white/70 flex justify-center items-center">
+        <Modal>
             <form
                 onSubmit={onSubmit}
-                className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col gap-5 items-center border-2 border-verde"
+                className="bg-background p-6 rounded-2xl shadow-2xl flex flex-col gap-5 items-center border-2 border-verde"
             >
                 <div className="flex gap-6">
                     <div className="space-y-3">
@@ -260,7 +261,7 @@ const NewAccountModal = ({ onClose, reload }: { onClose: () => void, reload: () 
                     >Cancelar</button>
                 </div>
             </form>
-        </div>
+        </Modal>
     );
 };
 

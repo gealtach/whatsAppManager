@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
 import { fetchClient } from "../lib/fetchClient";
+import Modal from "./Modal";
 
 type NewClientForm = {
     name: string;
@@ -34,8 +35,8 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
         } finally { setIsLoading(false); }
     });
     return (
-        <div className="fixed inset-0 bg-white/70 flex items-center justify-center">
-            <form onSubmit={onSubmit} className="p-5 px-10 bg-white rounded-2xl border-2 border-verde">
+        <Modal>
+            <form onSubmit={onSubmit} className="p-5 px-10 bg-background rounded-2xl border-2 border-verde">
                 <h1 className="text-xl font-semibold">Novo Cliente</h1>
                 <h1 className="text-sm text-gray-600">Os campos com * são obrigatórios</h1>
                 <div className="flex flex-col gap-3 my-3">
@@ -108,7 +109,7 @@ const NewClient = ({ onClose, accountId, reload }: { onClose: () => void, reload
                 </div>
             </form>
             {isLoading && <Loading />}
-        </div>
+        </Modal>
     );
 };
 

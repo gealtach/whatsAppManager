@@ -13,6 +13,7 @@ import AccountSettings from "../components/AccountSettings";
 import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
+import TemplateManager from "../components/TemplateManager";
 
 const Page = () => {
   const { logout } = useAuth();
@@ -72,6 +73,12 @@ const Page = () => {
       id: 'broadcasts',
       name: 'Difussões',
       component: selectedAccount ? <BroadcastManager selectedAccount={selectedAccount} /> : null,
+      requiresAccount: true
+    },
+    {
+      id: "templates",
+      name: "Templates",
+      component: selectedAccount ? <TemplateManager account={selectedAccount} /> : null,
       requiresAccount: true
     },
     {

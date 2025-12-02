@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { fetchClient } from "../lib/fetchClient";
 import TemplateViewer from "./TemplateViewer";
 import ComponentBuilder, { FieldValidation, WhatsAppComponent } from "../lib/componentBuilder";
+import Modal from "./Modal";
 
 type NewBroadcastForm = {
     templateName: string;
@@ -181,8 +182,8 @@ const NewBroadcast = ({
     });
 
     return (
-        <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
-            <form onSubmit={onSubmit} className="p-5 px-10 gap-10 bg-white flex items-start rounded-2xl border-2 border-verde mx-5 w-full max-h-[90vh] overflow-y-auto">
+        <Modal>
+            <form onSubmit={onSubmit} className="p-5 px-10 gap-10 bg-background flex items-start rounded-2xl border-2 border-verde mx-5 w-full max-h-[90vh] overflow-y-auto">
 
                 {/* Columna 1: Vista previa del template */}
                 <div className="w-1/4">
@@ -410,7 +411,7 @@ const NewBroadcast = ({
             </form>
 
             {isLoading && <Loading />}
-        </div>
+        </Modal>
     );
 };
 

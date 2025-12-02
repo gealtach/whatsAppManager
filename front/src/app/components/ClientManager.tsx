@@ -184,7 +184,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
                             {PaginationInfo}
                             {PaginationControls}
                         </div>
-                        <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <div className="bg-background rounded-lg shadow overflow-hidden">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -205,7 +205,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-background divide-y divide-gray-200">
                                     {
                                         currentItems.length > 0 ?
                                             currentItems.map((client) => (

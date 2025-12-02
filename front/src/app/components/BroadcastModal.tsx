@@ -7,6 +7,7 @@ import Tooltip from "./Tooltip";
 import { CiWarning } from "react-icons/ci";
 import { FaCheck } from "react-icons/fa";
 import { MdPending } from "react-icons/md";
+import Modal from "./Modal";
 
 const BroadcastModal = ({ onClose, broadcast, template }: { onClose: () => void, template: MessageTemplate, broadcast: Broadcast }) => {
     const recipientStatusIcon = (status: string) => {
@@ -15,8 +16,8 @@ const BroadcastModal = ({ onClose, broadcast, template }: { onClose: () => void,
         if (status === 'FAILED') return <Tooltip text="Falhou o envio"><CiWarning className="text-red-500" size={20} /></Tooltip>
     }
     return (
-        <div className="fixed inset-0 bg-white/30 flex items-center justify-center">
-            <div className="bg-white border-verde border-2 p-5 rounded-2xl">
+        <Modal>
+            <div className="bg-background border-verde border-2 p-5 rounded-2xl">
                 <button
                     onClick={onClose}
                     className="hover:text-red-500 cursor-pointer">
@@ -46,7 +47,7 @@ const BroadcastModal = ({ onClose, broadcast, template }: { onClose: () => void,
                     <span>Enviado: {broadcast?.sentAt?.toString().split('T')[0] || 'Ainda não foi enviado'}</span>
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };
 

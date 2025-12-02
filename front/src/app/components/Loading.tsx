@@ -1,15 +1,17 @@
 import React from 'react'
-import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { FaWhatsapp } from 'react-icons/fa'
+import Modal from './Modal'
 
 const Loading = () => {
     return (
-        <div className='fixed inset-0 flex w-screen h-screen bg-white/50 items-center justify-center z-50'>
-            <div className=''>
-                <div className='flex flex-col justify-center items-center p-4 gap-3'>
-                    <AiOutlineLoading3Quarters className='text-black animate-spin' size={40} />
+        <Modal className='z-50'>
+            <div>
+                <div className='flex flex-col justify-center items-center p-4 gap-5'>
+                    <FaWhatsapp className='text-verde animate-ping' size={50} />
+                    <span>Loading...</span>
                 </div>
             </div>
-        </div>
+        </Modal>
     )
 }
 
