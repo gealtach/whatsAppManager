@@ -28,9 +28,9 @@ const AccountManager = ({ onAccountSelect, accounts, reload }: { onAccountSelect
                     <button
                         key={account.id}
                         onClick={() => handleClick(account)}
-                        className="bg-background rounded-2xl shadow p-6 cursor-pointer hover:shadow-md text-left relative overflow-hidden transition-all duration-300 before:absolute before:inset-0 before:bg-verde/30 before:transform before:-translate-x-full before:transition-transform before:duration-300 before:ease-out hover:before:translate-x-0"
+                        className="bg-background rounded-2xl border shadow p-6 cursor-pointer hover:shadow-md text-left relative overflow-hidden transition-all duration-300 before:absolute before:inset-0 before:bg-verde/30 before:transform before:-translate-x-full before:transition-transform before:duration-300 before:ease-out hover:before:translate-x-0"
                     >
-                        <h3 className="font-bold text-lg">{account.name}</h3>
+                        <h3 className="font-bold text-foreground text-lg">{account.name}</h3>
                         <p className="text-gray-600">{account.phone}</p>
                         <div className="mt-4 flex justify-between text-sm text-gray-500">
                             <span>{account.clients?.length || 0} clientes</span>

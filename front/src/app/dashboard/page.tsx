@@ -14,6 +14,7 @@ import { fetchClient } from "../lib/fetchClient";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
 import TemplateManager from "../components/TemplateManager";
+import ThemeToggle from "../components/ThemeToggle";
 
 const Page = () => {
   const { logout } = useAuth();
@@ -92,18 +93,21 @@ const Page = () => {
   return (
     <ProtectedPage redirectPath="/">
       <div className="min-h-screen min-w-screen bg-background">
-        <header className="bg-white shadow flex justify-between">
+        <header className="bg-backgourd shadow flex justify-between items-center">
           <div className="max-w-7xl flex items-center gap-3 px-4 py-6">
             <FaWhatsapp className="text-verde" size={40} />
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               WhatsApp Manager
             </h1>
           </div>
-          <button
-            onClick={logout}
-            className="text-red-500 mr-5 cursor-pointer">
-            <IoLogOut size={30} />
-          </button>
+          <div className="flex items-center gap-5">
+            <ThemeToggle />
+            <button
+              onClick={logout}
+              className="text-red-500 mr-5 cursor-pointer">
+              <IoLogOut size={30} />
+            </button>
+          </div>
         </header>
         <main className="mx auto px-4 py-6">
           {/* Navigation Tabs */}
@@ -119,7 +123,7 @@ const Page = () => {
                     }`}
                   disabled={tab.requiresAccount && !selectedAccount}
                 >
-                  <span className={`${activeTab === tab.id ? 'opacity-120' : 'opacity-70'}`}>
+                  <span className={`${activeTab === tab.id ? 'opacity-120' : 'opacity-70'} text-foreground`}>
                     {tab.name}
                   </span>
                   {activeTab === tab.id && (

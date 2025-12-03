@@ -121,7 +121,7 @@ const TemplateViewer = ({ template }: { template: MessageTemplate }) => {
 
     const renderFooter = (footer: FooterComponent, index: number) => (
         <div key={`footer-${index}`} className="p-4 border-b border-gray-200">
-            <div className="text-gray-600">{footer.text}</div>
+            <div className="text-gray-600 text-xs">{footer.text}</div>
         </div>
     );
 
@@ -192,7 +192,7 @@ const TemplateViewer = ({ template }: { template: MessageTemplate }) => {
     return (
         <div className="max-w-md mx-auto">
             {/* Vista previa del mensaje */}
-            <div className="bg-background rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-white text-black rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 {template.components?.map((component, index) => renderComponent(component, index))}
 
                 {/* Mensaje si no hay componentes */}

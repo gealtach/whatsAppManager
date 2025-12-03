@@ -127,10 +127,10 @@ const Pagination = <T,>({
     // Componente de filtro
     const FilterComponent = filterFields.length > 0 ? (
         <div className='flex gap-3 items-center'>
-            <span className="text-black">Filtrar:</span>
+            <span className='text-foreground'>Filtrar:</span>
             <div className="relative flex items-center">
                 <input
-                    className='px-3 py-2 bg-gray-200 border border-verde rounded-md text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent'
+                    className='px-3 py-2 bg-background border border-verde rounded-md text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-verde focus:border-transparent'
                     type="text"
                     placeholder={`Pesquisar por ${filterFields.join(', ')}...`}
                     value={filterText}
@@ -139,7 +139,7 @@ const Pagination = <T,>({
                 {filterText && (
                     <button
                         onClick={clearFilter}
-                        className="ml-2 p-2 text-gray-400 hover:text-white hover:bg-gray-600 rounded-md transition"
+                        className="ml-2 p-2 text-foreground hover:bg-gray-500 rounded-md transition"
                         title="Limpar filtro"
                     >
                         <FaTimes />

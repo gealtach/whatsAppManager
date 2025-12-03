@@ -186,7 +186,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
                         </div>
                         <div className="bg-background rounded-lg shadow overflow-hidden">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-background">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                             Nome
@@ -209,7 +209,7 @@ const ClientManager = ({ selectedAccount }: { selectedAccount: Account }) => {
                                     {
                                         currentItems.length > 0 ?
                                             currentItems.map((client) => (
-                                                <tr key={client.id} className="hover:bg-gray-50">
+                                                <tr key={client.id} className="hover:bg-verde/30 text-foreground">
                                                     {
                                                         editingClient?.id === client.id ?
                                                             <>

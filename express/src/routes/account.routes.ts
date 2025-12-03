@@ -9,6 +9,6 @@ router.get('/', authenticateToken, getAll);
 router.post('/', authenticateToken, verifyCSRF, create);
 router.delete('/id', authenticateToken, verifyCSRF, deleteAccount);
 router.get('/:id/verify', authenticateToken, verify);
-router.put("/", update);
+router.put("/", authenticateToken, update);
 
 export default router;
